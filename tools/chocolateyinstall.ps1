@@ -1,14 +1,14 @@
 ﻿$toolsDir   = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
-$url        = 'https://onedrive.live.com/download?cid=6DCB03795CEC8D6E&resid=6DCB03795CEC8D6E%21104507&authkey=AMJvQ_5qnCm3c20' # download url, HTTPS preferred
+$url        = 'https://github.com/cloudflightio/chocolatey-dockerinwsl/releases/download/v0.0.1/dockerinwsl.tar.z7' # download url, HTTPS preferred
 
 $distroname = 'clf_dockerinwsl'
 
 $packageArgs = @{
   packageName   = $env:ChocolateyPackageName
-  fileFullPath = "$toolsDir\wsl-base.tar"
+  unzipLocation = "$toolsDir"
   url           = $url
 
-  checksum      = 'E3D2E50E871F0426018DCA13DA6E9CBB3486569F9218F60DADBC803D47857E1A'
+  checksum      = '4044FBBDFC8708A59E60F6CF56CC10DC06CB101290207A04C2B446CC9CA192EC'
   checksumType  = 'sha256' #default is md5, can also be sha1, sha256 or sha512
 }
 
@@ -25,11 +25,11 @@ if ($wslList -contains $distroname) {
   Write-Warning "WSL distro '$distroname' already installed."
 }
 
-Get-ChocolateyWebFile @packageArgs
+Install-ChocolateyZipPackage @packageArgs
 
 New-Item -ItemType Directory -Force -Path "$env:LOCALAPPDATA\Cloudflight\DockerInWSL\wsl\"
 
-Start-ChocolateyProcessAsAdmin "wsl --import $distroname `"$env:LOCALAPPDATA\Cloudflight\DockerInWSL\wsl\`" `"$toolsDir\wsl-base.tar`"" -validExitCodes @(0)
+Start-ChocolateyProcessAsAdmin "wsl --import $distroname `"$env:LOCALAPPDATA\Cloudflight\DockerInWSL\wsl\`" `"$toolsDir\dockerinwsl.tar`"" -validExitCodes @(0)
 
 Install-ChocolateyShortcut `
   -shortcutFilePath "$env:appdata\Microsoft\Windows\Start Menu\Programs\Startup\dockerinwsl.lnk" `

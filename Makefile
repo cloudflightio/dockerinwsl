@@ -8,8 +8,8 @@ image:
 	docker run --name dockerinwsl dockerinwsl:latest || true
 	docker export --output=dockerinwsl.tar dockerinwsl
 	docker rm --force dockerinwsl
-	rm dockerinwsl.tar.z7 || true
-	7z a dockerinwsl.tar.z7 dockerinwsl.tar
+	rm dockerinwsl.tar.7z || true
+	7z a dockerinwsl.tar.7z dockerinwsl.tar
 
 package:
 	choco pack

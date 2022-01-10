@@ -15,9 +15,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Init Build-Env
-      run: make init
-
     - name: Build the Choco Package
       run: make package
 

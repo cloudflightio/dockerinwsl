@@ -1,4 +1,4 @@
-name: Build Image
+name: Build Choco Package
 
 on:
   push:
@@ -15,12 +15,21 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Build the Docker image
-      run: make image_7z
+    - name: Init Build-Env
+      run: make init
+
+    - name: Build the Choco Package
+      run: make package
+
+    - name: Test install
+      run: make install
     
+    - name: Test uninstall
+      run: make uninstall
+
     - name: Upload Archive
       uses: actions/upload-artifact@v2
       with:
         name: archive
-        path: dockerinwsl.tar*
+        path: dockerinwsl*.nupkg
   

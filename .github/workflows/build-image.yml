@@ -18,9 +18,15 @@ jobs:
     - name: Build the Docker image
       run: make image_7z
     
-    - name: Upload Archive
+    - name: Upload Archive (tar)
       uses: actions/upload-artifact@v2
       with:
-        name: archive
-        path: dockerinwsl.tar*
+        name: dockerinwsl-tar
+        path: dockerinwsl.tar
+    
+    - name: Upload Archive (tar.7z)
+      uses: actions/upload-artifact@v2
+      with:
+        name: dockerinwsl-tar-7z
+        path: dockerinwsl.tar.7z
   

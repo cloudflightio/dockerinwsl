@@ -1,5 +1,6 @@
 ﻿$toolsDir   = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
-$url        = 'https://github.com/cloudflightio/chocolatey-dockerinwsl/releases/download/v0.0.1/dockerinwsl.tar.7z' # download url, HTTPS preferred
+$release    = "v$env:ChocolateyPackageVersion"
+$url        = "https://github.com/cloudflightio/chocolatey-dockerinwsl/releases/download/$release/dockerinwsl.tar.7z" # download url, HTTPS preferred
 
 $distroname = 'clf_dockerinwsl'
 

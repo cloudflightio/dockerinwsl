@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="5B14896C-A16E-4F22-AE96-257772DE655A"
+           UpgradeCode="A7DFAA38-00C1-4187-9F41-D6C11A8955D5"
+           Language="1033"
+           Manufacturer="Cloudflight Austria GmbH"
+           Name="DockerInWSL"
+           Version="1.0.0.0">
+
+    <Package InstallerVersion="301" InstallScope="perUser" Compressed="yes" Platform="x64" />
+
+    <Property Id="POWERSHELLEXE">
+    <RegistrySearch Id="POWERSHELLEXE"
+        Type="raw"
+        Root="HKLM"
+        Key="SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell"
+        Name="Path" 
+        Win64="yes" />
+    </Property>
+    <Condition Message="This application requires Windows PowerShell.">
+        <![CDATA[POWERSHELLEXE]]>
+    </Condition>
+
+    <!-- Install -->
+    <SetProperty Id="InstallDockerInWSL"
+        Before ="InstallDockerInWSL"
+        Sequence="execute"
+        Value="&quot;[POWERSHELLEXE]&quot; -Version 3.0 -NoProfile -NonInteractive -InputFormat None -ExecutionPolicy Bypass -Command &quot;&amp; '[#INSTALL.PS1]' ; exit $$($Error.Count)&quot;" />
+
+    <CustomAction Id="InstallDockerInWSL" BinaryKey="WixCA" DllEntry="WixQuietExec64" Execute="deferred" Return="check" Impersonate="yes" />
+
+    <!-- Uninstall -->
+    <SetProperty Id="UninstallDockerInWSL"
+        Before ="UninstallDockerInWSL"
+        Sequence="execute"
+        Value="&quot;[POWERSHELLEXE]&quot; -Version 3.0 -NoProfile -NonInteractive -InputFormat None -ExecutionPolicy Bypass -Command &quot;&amp; '[#UNINSTALL.PS1]' ; exit $$($Error.Count)&quot;" />
+
+    <CustomAction Id="UninstallDockerInWSL" BinaryKey="WixCA" DllEntry="WixQuietExec64" Execute="deferred" Return="check" Impersonate="yes" />
+
+    <!-- Install Sequence -->
+    <InstallExecuteSequence>
+        <Custom Action="InstallDockerInWSL" Before="InstallFinalize"><![CDATA[NOT Installed]]></Custom>
+        <Custom Action='UninstallDockerInWSL' After="InstallInitialize"><![CDATA[Installed AND (NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL")]]></Custom>
+    </InstallExecuteSequence>
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLFOLDER" Name="DockerInWSL">
+          <Component Id="ProductComponent" Guid="1D640756-4B90-4343-ABFB-999A3DB46DD0" Win64="yes">
+            <File Id="DOCKER.BAT" Source="docker.bat"></File>
+            <File Source="../dockerinwsl.tar"></File>
+            <Environment Id="DOCKER_HOST" Name="DOCKER_HOST" Value="tcp://localhost:2375" Permanent="no" Part="all" Action="set" System="no" />
+          </Component>
+          <Directory Id="InstallScripts" Name="InstallScripts">
+              <Component Id="InstallScriptsComponent" Guid="BF616F73-6E1D-41E5-B9C1-D23A59FECA03" DiskId="1" Win64="yes">
+                  <File Id="INSTALL.PS1" Name="install.ps1" Source="InstallScripts\install.ps1"/>
+                  <File Id="UNINSTALL.PS1" Name="uninstall.ps1" Source="InstallScripts\uninstall.ps1"/>
+                  <File Id="_COMMON.PS1" Name="_common.ps1" Source="InstallScripts\_common.ps1"/>
+              </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+      <Directory Id="StartupFolder">
+        <Component Id="ApplicationShortcutStartup" Guid="851732CF-BFF3-4762-835E-251CD4DC35CB" Win64="yes">
+          <Shortcut Id="AppShortCutStartUp" Name="DockerInWSL"
+                    Description="DockerInWSL Startup"
+                    Target="&quot;[INSTALLDIR][[DOCKER.BAT]]&quot; start"
+                    WorkingDirectory="INSTALLDIR" />
+          <RemoveFile Id="RemoveShortcutStartup" Name="DockerInWSL" On="uninstall" />
+          <RegistryKey Root="HKCU" Key="Software\DockerInWSL" ForceDeleteOnUninstall="yes">
+            <RegistryValue Name="ShortcutStartUp" Type="integer" Value="1" KeyPath="yes"  />
+          </RegistryKey>        
+        </Component>
+      </Directory>
+    </Directory>
+
+    <Feature Id="CompleteFeature">
+      <ComponentRef Id="ProductComponent" />
+      <ComponentRef Id="InstallScriptsComponent" />
+      <ComponentRef Id="ApplicationShortcutStartup" />
+    </Feature>
+
+  </Product>
+</Wix>

@@ -1,2 +1,6 @@
 *.nupkg
 *.tar*
+*.wix*
+*.msi
+*.log.*
+log.*

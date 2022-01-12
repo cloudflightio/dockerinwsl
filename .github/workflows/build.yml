@@ -29,6 +29,10 @@ jobs:
     runs-on: windows-latest
 
     needs: build-container
+    
+    env:
+      PFX_PASSPHRASE: ${{ secrets.PFX_PASSPHRASE }}
+      PFX_THUMBPRINT: ${{ secrets.PFX_THUMBPRINT }}
 
     steps:
     - uses: actions/checkout@v2

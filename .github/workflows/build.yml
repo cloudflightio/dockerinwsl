@@ -46,12 +46,6 @@ jobs:
     - name: Build the MSI Package
       run: make msi
 
-    - name: Test install
-      run: make install_msi
-    
-    - name: Test uninstall
-      run: make uninstall_msi
-
     - name: Upload Archive
       uses: actions/upload-artifact@v2
       with:

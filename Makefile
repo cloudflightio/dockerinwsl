@@ -10,7 +10,7 @@ image:
 	docker rm --force dockerinwsl
 	mv dockerinwsl.tar ../
 
-build_msi:
+msi:
 	powershell.exe -ExecutionPolicy ByPass ./msi/BuildInstaller.ps1
 	mv msi/Product.msi ./DockerInWSL.msi
 

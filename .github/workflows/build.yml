@@ -69,12 +69,6 @@ jobs:
     - name: Build the Choco Package
       run: make package
 
-    - name: Test install
-      run: make install
-    
-    - name: Test uninstall
-      run: make uninstall
-
     - name: Upload Archive
       uses: actions/upload-artifact@v2
       with:

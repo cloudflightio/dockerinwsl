@@ -12,6 +12,7 @@ image:
 
 msi:
 	powershell.exe -ExecutionPolicy ByPass ./msi/BuildInstaller.ps1
+	powershell.exe -ExecutionPolicy ByPass ./msi/SignInstaller.ps1
 	mv msi/Product.msi ./DockerInWSL.msi
 
 package:

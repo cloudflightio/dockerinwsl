@@ -14,7 +14,10 @@ $wslList = wsl --list
 if (!$wslList) {
     throw "Failed to execute wsl command (error: $LASTEXITCODE)."
 }
-if ($wslList -contains $distroname) {
+# Hotfix for https://github.com/microsoft/WSL/issues/7767
+$wslList = (($wslList -join ' ').ToCharArray() | % {$result = ""} { $result += ($_ | Where-Object { $_ -imatch "[ a-z_]" }) } { $result })
+
+if ($wslList -match $distroname) {
     Write-Warning "WSL distro '$distroname' already installed."
     & wsl "--unregister" "$distroname"
     if($LASTEXITCODE -ne 0){

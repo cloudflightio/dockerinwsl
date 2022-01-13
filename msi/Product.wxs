@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="5B14896C-A16E-4F22-AE96-257772DE655A"
+  <Product Id="*"
            UpgradeCode="A7DFAA38-00C1-4187-9F41-D6C11A8955D5"
            Language="1033"
            Manufacturer="Cloudflight Austria GmbH"
            Name="DockerInWSL"
-           Version="1.0.0.0">
+           Version="1.0.1.0">
 
     <Package InstallerVersion="301" InstallScope="perUser" Compressed="yes" Platform="x64" />
 

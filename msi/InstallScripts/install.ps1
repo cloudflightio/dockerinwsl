@@ -26,7 +26,7 @@ if ($wslList -match $distroname) {
 }
 
 New-Item -ItemType Directory -Force -Path $wsl_import_to
-& wsl "--import" "$distroname" $wsl_import_to $wsl_import_from
+& wsl "--import" "$distroname" $wsl_import_to $wsl_import_from --version 2
 if($LASTEXITCODE -ne 0){
     throw "Unable to import WSL distro from '$wsl_import_from' to '$wsl_import_to'"
 }

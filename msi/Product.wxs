@@ -5,21 +5,33 @@
            Language="1033"
            Manufacturer="Cloudflight Austria GmbH"
            Name="DockerInWSL"
-           Version="1.0.1.0">
+           Version="1.0.2.0">
 
-    <Package InstallerVersion="301" InstallScope="perUser" Compressed="yes" Platform="x64" />
+    <Package InstallerVersion="301" Compressed="yes" Platform="x64" />
 
     <Upgrade Id='A7DFAA38-00C1-4187-9F41-D6C11A8955D5'>
       <UpgradeVersion OnlyDetect='yes' Property='SELFFOUND'
-          Minimum='1.0.1' IncludeMinimum='yes'
-          Maximum='1.0.1' IncludeMaximum='yes' />
+          Minimum='1.0.2' IncludeMinimum='yes'
+          Maximum='1.0.2' IncludeMaximum='yes' />
       <UpgradeVersion OnlyDetect='yes' Property='NEWERFOUND'
-          Minimum='1.0.1' IncludeMinimum='no' />
+          Minimum='1.0.2' IncludeMinimum='no' />
       <UpgradeVersion
-          Minimum="1.0.0" Maximum="1.0.1"
+          Minimum="1.0.0" Maximum="1.0.2"
           Property="PREVIOUSVERSIONSINSTALLED"
           IncludeMinimum="yes" IncludeMaximum="no" />
     </Upgrade>
+
+    <!-- This condition adds an item to the LaunchCondition table of the MSI to block a user -->
+    <!-- from setting  this property to something other than blank. -->
+    <Condition Message="[ProductName] can not be installed for all users.">
+        <![CDATA[NOT ALLUSERS]]>
+    </Condition> 
+
+    <!-- This condition adds an item to the LaunchCondition table of the MSI to block a user -->
+    <!-- from installing this product unless they have administrative privileges on the system. -->
+    <Condition Message="You must have Administrative rights on this machine to install [ProductName].">
+        <![CDATA[Privileged]]>
+    </Condition>
 
     <Property Id="POWERSHELLEXE">
     <RegistrySearch Id="POWERSHELLEXE"
@@ -66,39 +78,54 @@
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFiles64Folder">
         <Directory Id="INSTALLFOLDER" Name="DockerInWSL">
-          <Component Id="ProductComponent" Guid="1D640756-4B90-4343-ABFB-999A3DB46DD0" Win64="yes">
-            <File Id="DOCKER.BAT" Source="docker.bat"></File>
-            <File Source="../dockerinwsl.tar"></File>
-            <Environment Id="DOCKER_HOST" Name="DOCKER_HOST" Value="tcp://localhost:2375" Permanent="no" Part="all" Action="set" System="no" />
-          </Component>
-          <Directory Id="InstallScripts" Name="InstallScripts">
-              <Component Id="InstallScriptsComponent" Guid="BF616F73-6E1D-41E5-B9C1-D23A59FECA03" DiskId="1" Win64="yes">
-                  <File Id="INSTALL.PS1" Name="install.ps1" Source="InstallScripts\install.ps1"/>
-                  <File Id="UNINSTALL.PS1" Name="uninstall.ps1" Source="InstallScripts\uninstall.ps1"/>
-                  <File Id="_COMMON.PS1" Name="_common.ps1" Source="InstallScripts\_common.ps1"/>
-              </Component>
-          </Directory>
+          <Directory Id="INSTALLSCRIPTSFOLDER" Name="InstallScripts" />
         </Directory>
       </Directory>
-      <Directory Id="StartupFolder">
-        <Component Id="ApplicationShortcutStartup" Guid="851732CF-BFF3-4762-835E-251CD4DC35CB" Win64="yes">
-          <Shortcut Id="AppShortCutStartUp" Name="DockerInWSL"
-                    Description="DockerInWSL Startup"
-                    Target="&quot;[INSTALLDIR][[DOCKER.BAT]]&quot; start"
-                    WorkingDirectory="INSTALLDIR" />
-          <RemoveFile Id="RemoveShortcutStartup" Name="DockerInWSL" On="uninstall" />
-          <RegistryKey Root="HKCU" Key="Software\DockerInWSL" ForceDeleteOnUninstall="yes">
-            <RegistryValue Name="ShortcutStartUp" Type="integer" Value="1" KeyPath="yes"  />
-          </RegistryKey>        
-        </Component>
-      </Directory>
+      <Directory Id="StartupFolder" />
     </Directory>
 
     <Feature Id="CompleteFeature">
-      <ComponentRef Id="ProductComponent" />
-      <ComponentRef Id="InstallScriptsComponent" />
-      <ComponentRef Id="ApplicationShortcutStartup" />
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="InstallerScriptsComponents" />
+      <ComponentRef Id="ApplicationShortcutStartupComponent" />
     </Feature>
-
   </Product>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="ControlFileComponent" Guid="*" Win64="yes">
+        <File Id="DOCKER.BAT" Source="docker.bat"></File>
+      </Component>
+      <Component  Id="ImageSourceComponent" Guid="*" Win64="yes">
+        <File Source="../dockerinwsl.tar"></File>
+      </Component>
+      <Component Id="EnvironmentComponent" Guid="*" Win64="yes">
+        <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="DOCKER_HOST" Type="string" Value="tcp://localhost:2375" KeyPath="yes"/>
+        <Environment Id="DOCKER_HOST" Name="DOCKER_HOST" Value="tcp://localhost:2375" Permanent="no" Part="all" Action="set" System="no" />
+      </Component>
+    </ComponentGroup>
+    <Component Id="ApplicationShortcutStartupComponent" Guid="*" Win64="yes" Directory="StartupFolder">
+      <Shortcut Id="StartupFolderShortcut" Name="dockerinwsl"
+                Description="DockerInWSL Startup"
+                Target="[#DOCKER.BAT]"
+                Arguments="start clf_dockerinwsl"
+                WorkingDirectory="INSTALLFOLDER" />
+      <RemoveFile Id="RemoveStartupFolderShortcut" Name="dockerinwsl" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="startup" Type="integer" Value="1" KeyPath="yes"/>   
+    </Component>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="InstallerScriptsComponents" Directory="INSTALLSCRIPTSFOLDER">
+      <Component Id="InstallScriptComponent" Guid="*" Win64="yes">
+          <File Id="INSTALL.PS1" Name="install.ps1" Source="InstallScripts\install.ps1"/>
+      </Component>
+      <Component Id="UninstallScriptComponent" Guid="*" Win64="yes">
+          <File Id="UNINSTALL.PS1" Name="uninstall.ps1" Source="InstallScripts\uninstall.ps1"/>
+      </Component>
+      <Component Id="CommonScriptComponent" Guid="*" Win64="yes">  
+          <File Id="_COMMON.PS1" Name="_common.ps1" Source="InstallScripts\_common.ps1"/>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
 </Wix>

@@ -18,7 +18,7 @@ try
     }
 
     # linking wixobj into msi
-    & "$lightToolPath" $wixobjFileName -v -wx -ext WixUtilExtension.dll -out $msiFileName
+    & "$lightToolPath" $wixobjFileName -v -sw1076 -ext WixUtilExtension.dll -out $msiFileName
     if($LASTEXITCODE -ne 0)
     {
         throw "Linking of $wixobjFileName failed with exit code $LASTEXITCODE"

@@ -5,7 +5,7 @@
            Language="1033"
            Manufacturer="Cloudflight Austria GmbH"
            Name="DockerInWSL"
-           Version="1.0.2.0">
+           Version="1.0.2.1">
 
     <Package InstallerVersion="301" Compressed="yes" Platform="x64" />
 

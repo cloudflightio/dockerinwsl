@@ -16,7 +16,8 @@ msi:
 	mv msi/bin/Release/* ./
 
 package:
-	cp DockerInWSL.msi chocolatey/tools/
+	cp DockerInWSL*.msi chocolatey/tools/
+	for f in chocolatey/tools/DockerInWSL*.msi; do mv "$$f" chocolatey/tools/DockerInWSL.msi; done
 	cd chocolatey 
 	choco pack
 	mv *.nupkg ../

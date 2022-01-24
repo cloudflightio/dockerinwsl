@@ -1,10 +1,12 @@
 # DockerInWSL
 
-This Project is meant to be an easy alternative to [DockerForWindows](https://docs.docker.com/desktop/windows/install/). It uses WSL2 and DockerInDocker as a lightweight replacement for the Moby-VM.
+This Project is meant to be a minimal alternative to [Docker Desktop](https://docs.docker.com/desktop/windows/install/). It uses WSL2 and the official "Docker" Container-Image (docker:dind) as a lightweight replacement for the Moby-VM.
 
 ## How to install?
 
 The easiest way is to use our private WinGet Repository. See https://github.com/cloudflightio/winget-pkgs for details. 
+
+**Please check if you have WSL2 installed and activated!** The installation is currently NOT checking for a working WSL2 environment. Also, check if you got a 5.x Linux Kernel Version (preferable 5.10.x or later) installed. Check `wsl --status` to get info about your WSL version. Try `wsl --install` and `wsl --update` to get the latest WSL install. See https://docs.microsoft.com/en-us/windows/wsl/install for more information.
 
 If you are one of the eager kind just execute the following in a privileged PowerShell window:
 
@@ -58,7 +60,7 @@ After that TestContainers should recognize the installation and "just work".
 ## How does it work?
 
 This project is a result of our internal dev setup which uses Docker and TestContainers to provide a convenient way to work with cloud-native environments.
-We used DockerForWindows in the past but were forced to replace it due to the recent policy change (https://www.docker.com/blog/updating-product-subscriptions/).
+We used "Docker Desktop" in the past but were forced to replace it due to the recent policy change (https://www.docker.com/blog/updating-product-subscriptions/).
 Our new (this) setup uses WSL2 and Alpine-Linux with Docker to provide a simple replacement. Currently, it does miss some convenience features, like a management-gui but should also be more lightweight and easier to use.
 
 The whole installation process is handled by MSI and Powershell. At its core the installer is performing the following steps:
@@ -70,9 +72,10 @@ The whole installation process is handled by MSI and Powershell. At its core the
 * Set the `DOCKER_HOST` user environment-variable to `tcp://localhost:2375`
 * Run the [install.ps1](msi/InstallScripts/install.ps1) Script
   * Check if a DockerInWSL distro is already installed in WSL2
-    * If one is found we delete the current distro using "wsl unregistry <distro>". This deletes the entire docker-storage and leads to a complete wipe (from a docker point of view)
-    * We are working on an export/import mechanism to avoid that. Also for Win11, there is the possibility to use mounted VHDX files and therefore persist the docker-data between updates.
-    * You might ask "why not just leave the distro be?": We are currently using the stock "dind" Image to reduce maintenance effort as much as possible. Using this makes in-place-upgrades quite hard, we, therefore, decided to go "the docker way", using only destroy/recreate as update path. We might reconsider this in future versions but for now, it seems like the best approach.
+    * If one is found we create a backup of /var/lib/docker and put it on the host-machine under `%APPDATALOCAL%\DockerInWSL\backup.tar.gz`. (For Win11, there is the possibility to use mounted VHDX files and therefore persist the docker-data between updates. We will try to integrate that in the future)
+    * After that we delete the current distro using "wsl unregister <distro>". This deletes the entire docker-storage and leads to a complete wipe (from a docker point of view)
+    * You might ask "why not just leave the distro be?": We are currently using the stock "dind" Image to reduce maintenance effort as much as possible. Using this makes in-place upgrades quite hard, we, therefore, decided to go "the docker way", using only destroy/recreate as update path. We might reconsider this in future versions but for now, it seems like the best approach.
   * Import the DockerInWSL tar package from `%APPDATALOCAL%\DockerInWSL\dockerinwsl.tar` to `%APPLOCALDATA\DockerInWSL\wsl` using `wsl --import ...`.
+  * Check if there is a file at `%APPDATALOCAL%\DockerInWSL\backup.tar.gz` and extract it. If this fails we are NOT aborting the installation because the old distro is already gone. **If you find your WSL Docker empty after an update, look at the `%APPDATALOCAL%\DockerInWSL\backup.tar.gz`-file and try to extract it manually**
   * Finally, the startup-script [docker.bat](msi/docker.bat) is called to start docker.
 * Additionally a Registry-Key is created to support proper updates/uninstalling using MSI.

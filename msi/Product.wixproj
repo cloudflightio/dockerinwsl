@@ -1,0 +1,85 @@
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+        <Import Project="global.targets" />
+
+        <PropertyGroup>
+                <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+                <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+                <ProductVersion>1.1</ProductVersion>
+                <ProjectGuid>{88999f3a-a44d-4fa6-aac6-30cbccdf6e4d}</ProjectGuid>
+                <SchemaVersion>2.0</SchemaVersion>
+                <OutputName>DockerInWSL</OutputName>
+                <OutputType>Package</OutputType>
+                <DefineSolutionProperties>false</DefineSolutionProperties>
+                <gitRevision>0</gitRevision>
+                <gitRevisionHash>Unknown commit</gitRevisionHash>
+                <CurrentDate>$([System.DateTime]::Now.ToString(yyMMdd))</CurrentDate>
+        </PropertyGroup>
+        <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+                <OutputPath>bin\$(Configuration)\</OutputPath>
+                <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+                <DefineConstants>Debug</DefineConstants>
+        </PropertyGroup>
+        <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+                <OutputPath>bin\$(Configuration)\</OutputPath>
+                <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+        </PropertyGroup>
+        <ItemGroup>
+                <Compile Include="Product.wxs" />
+        </ItemGroup>
+        <ItemGroup>
+                <WixExtension Include="WixUtilExtension">
+                        <HintPath>$(WixExtDir)\WixUtilExtension.dll</HintPath>
+                        <Name>WixUtilExtension</Name>
+                </WixExtension>
+        </ItemGroup>
+        <Import Project="$(WixTargetsPath)" Condition=" '$(WixTargetsPath)' != '' " />
+        <Import Project="$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets" Condition=" '$(WixTargetsPath)' == '' AND Exists('$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets') " />
+        <Target Name="EnsureWixToolsetInstalled" Condition=" '$(WixTargetsImported)' != 'true' ">
+                <Error Text="The WiX Toolset v3.11 (or newer) build tools must be installed to build this project. To download the WiX Toolset, see http://wixtoolset.org/releases/" />
+        </Target>
+        <Target Name="Version">
+                <ExtractRevisionHash WorkCopy="$(MSBuildProjectDirectory)">
+                        <Output TaskParameter="RevisionHash" PropertyName="gitRevisionHash" />
+                </ExtractRevisionHash>
+                <ExtractGITRevision WorkCopy="$(MSBuildProjectDirectory)">
+                        <Output TaskParameter="Revision" PropertyName="gitRevision" />
+                </ExtractGITRevision>
+                <PropertyGroup>
+                        <Version>$(ProductVersion).$(gitRevision).$(CurrentDate)</Version>
+                </PropertyGroup>
+        </Target>
+        <Target Name="BeforeBuild" DependsOnTargets="Version">
+                <Message Text="Version: '$(Version)'" />
+                <PropertyGroup>
+                        <DefineConstants>Version=$(Version)</DefineConstants>
+                </PropertyGroup>
+        </Target>
+        <Target Name="SetOutputName" DependsOnTargets="Version">
+                <PropertyGroup>
+                        <VersionedOutputName>$(OutputName)_$(Version)</VersionedOutputName>
+                </PropertyGroup>
+        </Target>
+        <Target Name="AfterBuild" DependsOnTargets="SetOutputName">
+                
+                <Copy SourceFiles="$(TargetDir)\$(OutputName).msi" DestinationFiles="$(TargetDir)\$(VersionedOutputName).msi" />
+                <Delete Files="$(TargetDir)\$(OutputName).msi" />
+        </Target>
+        <Target Name="UsesFrameworkSdk">
+                <PropertyGroup>
+                        <Win10SDK>C:\Program Files (x86)\Windows Kits\10\</Win10SDK>
+                </PropertyGroup>
+                <Message Text="SDK path = '$(Win10SDK)'" Importance="high" />
+        </Target>
+
+        <Target Name="UsesSignTool" DependsOnTargets="UsesFrameworkSdk">
+                <PropertyGroup>
+                        <SignToolPath Condition="('@(SignToolPath)'=='') and Exists('$(Win10SDK)\bin\10.0.20348.0\x64\signtool.exe')">$(Win10SDK)bin\10.0.20348.0\x64\signtool.exe</SignToolPath>
+                </PropertyGroup>
+        </Target>
+        <Target Name="SignMsi" DependsOnTargets="UsesSignTool;SetOutputName">
+                <PropertyGroup>
+                        <PFX_PATH Condition="('@(PFX_PATH)'=='')">$(MSBuildProjectDirectory)\..\Certificate.pfx</PFX_PATH>
+                </PropertyGroup>
+                <Exec Command="&quot;$(SignToolPath)&quot; sign /f &quot;$(PFX_PATH)&quot; /p &quot;$(PFX_PASSPHRASE)&quot; /v /sha1 &quot;$(PFX_THUMBPRINT)&quot; /t  &quot;http://timestamp.comodoca.com/authenticode&quot; /fd SHA256 &quot;$(TargetDir)\$(VersionedOutputName).msi&quot;" />
+        </Target>
+</Project>

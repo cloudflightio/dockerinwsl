@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" 
+	DefaultTargets="Settings">
+
+	<PropertyGroup>
+		<productVersion>0.1.1</productVersion>
+	</PropertyGroup>
+
+	<UsingTask
+		TaskName="ExtractRevisionHash"
+		TaskFactory="CodeTaskFactory"
+		AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll" >
+    	
+		<ParameterGroup>
+			<WorkCopy ParameterType="System.String" Required="true" />
+			<RevisionHash ParameterType="System.String" Output="true" />
+		</ParameterGroup>
+
+    	<Task>
+      		<Using Namespace="System" />
+      		<Using Namespace="System.Diagnostics" />
+      		<Using Namespace="System.IO" />
+      		<Code Type="Fragment" Language="cs">
+				<![CDATA[
+	            try {
+    	            ProcessStartInfo psi = new ProcessStartInfo("git", "rev-parse HEAD");
+        	        psi.WorkingDirectory = WorkCopy;
+            	    psi.RedirectStandardOutput = true;
+                	psi.RedirectStandardError = true;
+	                psi.UseShellExecute = false;
+    	            Process p = Process.Start(psi);
+        	        string line;
+            	    while ((line = p.StandardOutput.ReadLine()) != null) {
+    	                RevisionHash = line;
+        	            Log.LogMessage("Last Git Revision Hash: {0}", RevisionHash);
+                	}
+	                p.WaitForExit();
+    	            if (p.ExitCode != 0)
+        	            Log.LogError(p.StandardError.ReadLine());
+            	    return p.ExitCode == 0;
+	            } catch (Exception ex) {
+    	            Log.LogError(ex.Message);
+        	        return false;
+            	}
+				]]>
+      		</Code>
+    	</Task>
+	</UsingTask>
+
+	<UsingTask
+		TaskName="ExtractGITRevision"
+		TaskFactory="CodeTaskFactory"
+		AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll" >
+    	
+		<ParameterGroup>
+			<WorkCopy ParameterType="System.String" Required="true" />
+			<Revision ParameterType="System.String" Output="true" />
+		</ParameterGroup>
+
+    	<Task>
+      		<Using Namespace="System" />
+      		<Using Namespace="System.Diagnostics" />
+      		<Using Namespace="System.IO" />
+      		<Code Type="Fragment" Language="cs">
+				<![CDATA[
+	            try {
+    	            ProcessStartInfo psi = new ProcessStartInfo("git", "rev-list HEAD --count");
+        	        psi.WorkingDirectory = WorkCopy;
+            	    psi.RedirectStandardOutput = true;
+                	psi.RedirectStandardError = true;
+	                psi.UseShellExecute = false;
+    	            Process p = Process.Start(psi);
+        	        string line;
+            	    while ((line = p.StandardOutput.ReadLine()) != null) {
+    	                Revision = line;
+        	            Log.LogMessage("Last Git Revision: {0}", Revision);
+                	}
+	                p.WaitForExit();
+    	            if (p.ExitCode != 0)
+        	            Log.LogError(p.StandardError.ReadLine());
+            	    return p.ExitCode == 0;
+	            } catch (Exception ex) {
+    	            Log.LogError(ex.Message);
+        	        return false;
+            	}
+				]]>
+      		</Code>
+    	</Task>
+	</UsingTask>
+
+	<UsingTask
+		TaskName="ExtractSVNRevision"
+		TaskFactory="CodeTaskFactory"
+		AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll" >
+    	
+		<ParameterGroup>
+			<WorkCopy ParameterType="System.String" Required="true" />
+			<Revision ParameterType="System.String" Output="true" />
+		</ParameterGroup>
+
+    	<Task>
+      		<Using Namespace="System" />
+      		<Using Namespace="System.Diagnostics" />
+      		<Using Namespace="System.IO" />
+      		<Code Type="Fragment" Language="cs">
+				<![CDATA[
+	            try {
+    	            ProcessStartInfo psi = new ProcessStartInfo("svn", "info");
+        	        psi.WorkingDirectory = WorkCopy;
+            	    psi.RedirectStandardOutput = true;
+                	psi.RedirectStandardError = true;
+	                psi.UseShellExecute = false;
+    	            Process p = Process.Start(psi);
+        	        string line;
+            	    while ((line = p.StandardOutput.ReadLine()) != null) {
+                	    if (line.ToLower().StartsWith("url:"))
+                    	    Log.LogMessage("Svn Url: {0}", line.Substring(5));
+	                    if (line.ToLower().StartsWith("last changed rev:")) {
+    	                    Revision = line.Substring(18);
+        	                Log.LogMessage("Last Revision: {0}", Revision);
+            	        }
+                	}
+	                p.WaitForExit();
+    	            if (p.ExitCode != 0)
+        	            Log.LogError(p.StandardError.ReadLine());
+            	    return p.ExitCode == 0;
+	            } catch (Exception ex) {
+    	            Log.LogError(ex.Message);
+        	        return false;
+            	}
+				]]>
+      		</Code>
+    	</Task>
+	</UsingTask>
+
+	<UsingTask
+		TaskName="ReplaceText"
+		TaskFactory="CodeTaskFactory"
+		AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll" >
+    	
+		<ParameterGroup>
+			<InputFile ParameterType="System.String" Required="true" />
+			<OutputFile ParameterType="System.String" Required="true" />
+			<FindFor ParameterType="System.String" Required="true" />
+			<ReplaceBy ParameterType="System.String" Required="true" />
+			<Revision ParameterType="System.String" Output="true" />
+		</ParameterGroup>
+
+    	<Task>
+      		<Using Namespace="System" />
+      		<Using Namespace="System.Diagnostics" />
+      		<Using Namespace="System.IO" />
+      		<Using Namespace="System.Text.RegularExpressions" />
+      		<Code Type="Fragment" Language="cs">
+				<![CDATA[
+	            try {
+    	            StringBuilder sb = new StringBuilder();
+        	        // in-memory replace 
+            	    Regex rx = new Regex(FindFor);
+                	string text = File.ReadAllText(InputFile);
+	                text = rx.Replace(text, ReplaceBy);
+    	            if (File.Exists(OutputFile)) {
+        	            string oldText = File.ReadAllText(OutputFile);
+            	        if (oldText != text)
+                	        File.WriteAllText(OutputFile, text, Encoding.UTF8);
+	                } else
+    	                File.WriteAllText(OutputFile, text, Encoding.UTF8);
+        	        return true;
+	            } catch (Exception ex) {
+    	            Log.LogErrorFromException(ex);
+        	        return false;
+            	}
+				]]>
+      		</Code>
+    	</Task>
+	</UsingTask>
+	
+</Project>

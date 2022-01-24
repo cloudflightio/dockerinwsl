@@ -1,6 +1,9 @@
 *.nupkg
-*.tar*
-*.wix*
+*.tar
+*.tar.gz
+msi/obj/
+msi/bin/
+*.wixpdb
 *.msi
 *.log.*
 log.*

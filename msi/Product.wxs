@@ -5,21 +5,11 @@
            Language="1033"
            Manufacturer="Cloudflight Austria GmbH"
            Name="DockerInWSL"
-           Version="1.0.2.1">
+           Version="1.0.3.0">
 
     <Package InstallerVersion="301" Compressed="yes" Platform="x64" />
 
-    <Upgrade Id='A7DFAA38-00C1-4187-9F41-D6C11A8955D5'>
-      <UpgradeVersion OnlyDetect='yes' Property='SELFFOUND'
-          Minimum='1.0.2' IncludeMinimum='yes'
-          Maximum='1.0.2' IncludeMaximum='yes' />
-      <UpgradeVersion OnlyDetect='yes' Property='NEWERFOUND'
-          Minimum='1.0.2' IncludeMinimum='no' />
-      <UpgradeVersion
-          Minimum="1.0.0" Maximum="1.0.2"
-          Property="PREVIOUSVERSIONSINSTALLED"
-          IncludeMinimum="yes" IncludeMaximum="no" />
-    </Upgrade>
+    <MajorUpgrade Schedule="afterInstallInitialize" DowngradeErrorMessage="A later version of [ProductName] is already installed. Setup will now exit." />
 
     <!-- This condition adds an item to the LaunchCondition table of the MSI to block a user -->
     <!-- from setting  this property to something other than blank. -->
@@ -61,14 +51,8 @@
 
     <CustomAction Id="UninstallDockerInWSL" BinaryKey="WixCA" DllEntry="WixQuietExec64" Execute="deferred" Return="check" Impersonate="yes" />
 
-    <CustomAction Id='AlreadyInstalled' Error='[ProductName] is already installed.' />
-    <CustomAction Id='NoDowngrade' Error='A later version of [ProductName] is already installed.' />
-
     <!-- Install Sequence -->
     <InstallExecuteSequence>
-        <Custom Action='AlreadyInstalled' After='FindRelatedProducts'>SELFFOUND</Custom>
-        <Custom Action='NoDowngrade' After='FindRelatedProducts'>NEWERFOUND</Custom>
-        <RemoveExistingProducts Before="InstallInitialize" /> 
         <Custom Action="InstallDockerInWSL" Before="InstallFinalize"><![CDATA[NOT Installed]]></Custom>
         <Custom Action='UninstallDockerInWSL' After="InstallInitialize"><![CDATA[Installed AND (NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL")]]></Custom>
     </InstallExecuteSequence>

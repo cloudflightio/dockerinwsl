@@ -6,7 +6,9 @@ This Project is meant to be a minimal alternative to [Docker Desktop](https://do
 
 The easiest way is to use our private WinGet Repository. See https://github.com/cloudflightio/winget-pkgs for details. 
 
-**Please check if you have WSL2 installed and activated!** The installation is currently NOT checking for a working WSL2 environment. Also, check if you got a 5.x Linux Kernel Version (preferable 5.10.x or later) installed. Check `wsl --status` to get info about your WSL version. Try `wsl --install` and `wsl --update` to get the latest WSL install. See https://docs.microsoft.com/en-us/windows/wsl/install for more information.
+> **Please check if you have WSL2 installed and activated!** Check if you got a 5.x Linux Kernel Version (preferable 5.10.x or later) installed. Run `wsl --status` to gather info about your WSL version. Try `wsl --install` and `wsl --update` to get the latest WSL install. See https://docs.microsoft.com/en-us/windows/wsl/install for more information.
+
+> :information_source: You can uninstall the default ubuntu-based disto after the install is done using `ẁsl --unregister ubuntu`, it is not needed for DockerInWSL to work.
 
 If you are one of the eager kind just execute the following in a privileged PowerShell window:
 

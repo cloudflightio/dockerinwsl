@@ -35,6 +35,13 @@
         <![CDATA[POWERSHELLEXE]]>
     </Condition>
 
+    <SetProperty Id="CheckPrerequisite"
+        Before="CheckPrerequisite"
+        Sequence="execute"
+        Value="&quot;[POWERSHELLEXE]&quot; -Version 3.0 -NoProfile -NonInteractive -InputFormat None -ExecutionPolicy Bypass -Command &quot;&amp; '[#CHECK.PS1]' ; exit $$($Error.Count)&quot;" />
+
+    <CustomAction Id="CheckPrerequisite" BinaryKey="WixCA" DllEntry="WixQuietExec64" Execute="deferred" Return="check" Impersonate="yes" />
+
     <!-- Install -->
     <SetProperty Id="InstallDockerInWSL"
         Before ="InstallDockerInWSL"
@@ -53,6 +60,7 @@
 
     <!-- Install Sequence -->
     <InstallExecuteSequence>
+        <Custom Action="CheckPrerequisite" Before="InstallFinalize"><![CDATA[NOT Installed]]></Custom>
         <Custom Action="InstallDockerInWSL" Before="InstallFinalize"><![CDATA[NOT Installed]]></Custom>
         <Custom Action='UninstallDockerInWSL' After="InstallInitialize"><![CDATA[Installed AND (NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL")]]></Custom>
     </InstallExecuteSequence>
@@ -106,6 +114,9 @@
       </Component>
       <Component Id="UninstallScriptComponent" Guid="*" Win64="yes">
           <File Id="UNINSTALL.PS1" Name="uninstall.ps1" Source="InstallScripts\uninstall.ps1"/>
+      </Component>
+      <Component Id="CheckScriptComponent" Guid="*" Win64="yes">
+        <File Id="CHECK.PS1" Name="check.ps1" Source="InstallScripts\check.ps1"/>
       </Component>
       <Component Id="CommonScriptComponent" Guid="*" Win64="yes">  
           <File Id="_COMMON.PS1" Name="_common.ps1" Source="InstallScripts\_common.ps1"/>

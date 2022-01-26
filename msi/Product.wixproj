@@ -80,6 +80,6 @@
                 <PropertyGroup>
                         <PFX_PATH Condition="('@(PFX_PATH)'=='')">$(MSBuildProjectDirectory)\..\Certificate.pfx</PFX_PATH>
                 </PropertyGroup>
-                <Exec Command="&quot;$(SignToolPath)&quot; sign /f &quot;$(PFX_PATH)&quot; /p &quot;$(PFX_PASSPHRASE)&quot; /v /sha1 &quot;$(PFX_THUMBPRINT)&quot; /t  &quot;http://timestamp.comodoca.com/authenticode&quot; /fd SHA256 &quot;$(TargetDir)\$(VersionedOutputName).msi&quot;" />
+                <Exec Command="&quot;$(SignToolPath)&quot; sign /f &quot;$(PFX_PATH)&quot; /p &quot;$(PFX_PASSPHRASE)&quot; /v /sha1 &quot;$(PFX_THUMBPRINT)&quot; /t  &quot;http://timestamp.comodoca.com/authenticode&quot; /fd SHA256 &quot;$(TargetDir)$(VersionedOutputName).msi&quot;" />
         </Target>
 </Project>

@@ -1,6 +1,14 @@
 @echo off
 setlocal
 
+set LOGFILE=%LOCALAPPDATA%\Temp\dockerinwsl.log
+call :LOG %* >> %LOGFILE%
+exit /B
+
+:LOG
+
+echo --- %* %date% %time%
+
 set USAGE="Usage: docker.bat (start | stop) <distro>"
 
 set DOCKER_PID=/var/run/docker.pid

@@ -7,6 +7,8 @@ exit /B
 
 :LOG
 
+REM  "%%SYSTEM_ROOT%%/system32/wsl.exe" -d "%%WSL_DISTRO_NAME%%" --user root -- $cmd --oknodo --background --start -- -c "exec ${WSLVPNKIT_PATH} >> ${LOG_PATH} 2>&1"
+
 echo --- %* %date% %time%
 
 set USAGE="Usage: docker.bat (start | stop) <distro>"

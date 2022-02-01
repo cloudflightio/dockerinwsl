@@ -5,6 +5,7 @@
 image:
 	cd docker
 	docker build -t dockerinwsl:latest .
+	docker rm --force dockerinwsl || true
 	docker run --name dockerinwsl dockerinwsl:latest || true
 	docker export --output=dockerinwsl.tar dockerinwsl
 	docker rm --force dockerinwsl

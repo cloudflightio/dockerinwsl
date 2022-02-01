@@ -20,12 +20,4 @@ RUN chmod +x /usr/local/sbin/vpnkit-tap-vsockd && chown root:root /usr/local/sbi
 COPY wsl-vpnkit /usr/local/bin/wsl-vpnkit 
 RUN chmod +x /usr/local/bin/wsl-vpnkit && chown root:root /usr/local/bin/wsl-vpnkit
 
-ADD https://github.com/sakai135/vpnkit/releases/download/v${VPNKIT_VERSION}/vpnkit.exe /files/vpnkit/vpnkit.exe
-
-# download npiperelay
-RUN wget https://github.com/jstarks/npiperelay/releases/download/v${NPIPERELAY_VERSION}/npiperelay_windows_amd64.zip \
- && 7z e npiperelay_windows_amd64.zip npiperelay.exe \
- && rm npiperelay_windows_amd64.zip \
- && mv npiperelay.exe "/files/npiperelay/"
-
 COPY defaults.conf /files/

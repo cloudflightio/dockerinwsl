@@ -79,6 +79,7 @@
     <Feature Id="CompleteFeature">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="InstallerScriptsComponents" />
+      <ComponentGroupRef Id="NetworkComponents" />
       <ComponentRef Id="ApplicationShortcutStartupComponent" />
     </Feature>
   </Product>
@@ -120,6 +121,17 @@
       </Component>
       <Component Id="CommonScriptComponent" Guid="*" Win64="yes">  
           <File Id="_COMMON.PS1" Name="_common.ps1" Source="InstallScripts\_common.ps1"/>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="NetworkComponents" Directory="INSTALLFOLDER">
+      <Component Id="VpnKitComponent" Guid="*" Win64="yes">
+        <File Id="VPNKIT.EXE" Source="tmp\vpnkit.exe"></File>
+      </Component>
+      <Component Id="NPipeRelayComponent" Guid="*" Win64="yes">
+        <File Id="NPIPERELAY.EXE" Source="tmp\npiperelay.exe"></File>
       </Component>
     </ComponentGroup>
   </Fragment>

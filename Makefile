@@ -12,8 +12,8 @@ image:
 	mv dockerinwsl.tar ../
 
 msi:
-	powershell.exe -ExecutionPolicy ByPass ./msi/BuildInstaller.ps1
-	powershell.exe -ExecutionPolicy ByPass ./msi/SignInstaller.ps1
+	pwsh.exe -ExecutionPolicy ByPass ./msi/BuildInstaller.ps1
+	pwsh.exe -ExecutionPolicy ByPass ./msi/SignInstaller.ps1
 	mv msi/bin/Release/* ./
 
 msi-release:

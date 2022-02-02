@@ -49,7 +49,7 @@ if %1==stop (
 :start_docker
   wsl -d %1 [ ! -f %DOCKER_PID% ]
   if %ERRORLEVEL%==0 (
-    wsl -d %1 /bin/ash -cm "dockerd %DOCKERD_OPTS% < /dev/null > %DOCKER_LOG% 2>&1 &"
+    wsl -d %1 /bin/bash -cm "dockerd %DOCKERD_OPTS% < /dev/null > %DOCKER_LOG% 2>&1 &"
     exit /B 0
   ) else (
     echo "docker seems to be running already; %DOCKER_PID% found"
@@ -59,7 +59,7 @@ if %1==stop (
 :stop_docker
   wsl -d %1 [ -f %DOCKER_PID% ]
   if %ERRORLEVEL%==0 (
-    wsl -d %1 /bin/ash -c "kill $(cat %DOCKER_PID%)"
+    wsl -d %1 /bin/bash -c "kill $(cat %DOCKER_PID%)"
     exit /B 0
   ) else (
     echo "docker seems to be stopped already; %DOCKER_PID% not found"

@@ -14,6 +14,7 @@ RUN apt-get update \
     gnupg \
     lsb-release \
     iproute2 \
+    supervisor \
  && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
  && echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
@@ -36,5 +37,6 @@ COPY wsl-vpnkit /usr/local/bin/wsl-vpnkit
 RUN chmod +x /usr/local/bin/wsl-vpnkit && chown root:root /usr/local/bin/wsl-vpnkit
 
 COPY defaults.conf /usr/share/vpnkit/
+COPY conf.d/* /etc/supervisor/conf.d/
 
 VOLUME ["/var/lib/docker"]

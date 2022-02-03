@@ -86,8 +86,11 @@
 
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <Component Id="ControlFileComponent" Guid="*" Win64="yes">
+      <Component Id="ControlFileBatComponent" Guid="*" Win64="yes">
         <File Id="DOCKER.BAT" Source="docker.bat"></File>
+      </Component>
+      <Component Id="ControlFilePs1Component" Guid="*" Win64="yes">
+        <File Id="DOCKER.PS1" Source="docker.ps1"></File>
       </Component>
       <Component  Id="ImageSourceComponent" Guid="*" Win64="yes">
         <File Source="../dockerinwsl.tar"></File>

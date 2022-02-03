@@ -20,16 +20,3 @@ msi-release:
 	powershell.exe -ExecutionPolicy ByPass ./msi/BuildInstaller.ps1
 	powershell.exe -ExecutionPolicy ByPass ./msi/AzureSignInstaller.ps1
 	mv msi/bin/Release/* ./
-
-package:
-	cp DockerInWSL*.msi chocolatey/tools/
-	for f in chocolatey/tools/DockerInWSL*.msi; do mv "$$f" chocolatey/tools/DockerInWSL.msi; done
-	cd chocolatey 
-	choco pack
-	mv *.nupkg ../
-
-install: package
-	choco install dockerinwsl --force -y -dv -pre -s .
-
-uninstall:
-	choco uninstall dockerinwsl -y

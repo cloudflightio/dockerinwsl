@@ -70,7 +70,7 @@
                 </PropertyGroup>
                 <Message Text="SDK path = '$(Win10SDK)'" Importance="high" />
         </Target>
-
+        <!-- signtool only used for local testing -->
         <Target Name="UsesSignTool" DependsOnTargets="UsesFrameworkSdk">
                 <PropertyGroup>
                         <SignToolPath Condition="('@(SignToolPath)'=='') and Exists('$(Win10SDK)\bin\10.0.20348.0\x64\signtool.exe')">$(Win10SDK)bin\10.0.20348.0\x64\signtool.exe</SignToolPath>
@@ -82,4 +82,20 @@
                 </PropertyGroup>
                 <Exec Command="&quot;$(SignToolPath)&quot; sign /f &quot;$(PFX_PATH)&quot; /p &quot;$(PFX_PASSPHRASE)&quot; /v /sha1 &quot;$(PFX_THUMBPRINT)&quot; /t  &quot;http://timestamp.comodoca.com/authenticode&quot; /fd SHA256 &quot;$(TargetDir)$(VersionedOutputName).msi&quot;" />
         </Target>
+
+        <Target Name="UsesAzureSignTool" >
+                <Exec Command="dotnet tool install --global AzureSignTool --version 3.0.0 || VER>NUL" />
+        </Target>
+        <Target Name="AzureSignMsi" DependsOnTargets="UsesAzureSignTool;SetOutputName">
+                <PropertyGroup>
+                        <DescriptionURL>https://github.com/cloudflightio/dockerinwsl</DescriptionURL>
+                        <AzureKeyVaultURL>https://cloudflight-code-signing.vault.azure.net</AzureKeyVaultURL>
+                        <AzureKeyVaultTenantId>e21ebe2c-3b5b-4d4c-8d0e-c1ca0e8ea14b</AzureKeyVaultTenantId>
+                        <AzureKeyVaultClientId>18462f44-aee3-42ac-aba8-bdfd3d4d8c23</AzureKeyVaultClientId>
+                        <AzureKeyVaultCertificate>globalsign-ev-code-signing</AzureKeyVaultCertificate>
+                        <TimestampService>http://timestamp.digicert.com</TimestampService>
+                </PropertyGroup>
+                <Exec Command="AzureSignTool sign -du &quot;$(DescriptionURL)&quot; -fd sha384 -kvu &quot;$(AzureKeyVaultURL)&quot; -kvi &quot;$(AzureKeyVaultClientId)&quot; -kvt &quot;$(AzureKeyVaultTenantId)&quot; -kvs $(AZURE_SIGN_CLIENT_SECRET) -kvc &quot;$(AzureKeyVaultCertificate)&quot; -tr &quot;$(TimestampService)&quot; -td sha384 -v &quot;$(TargetDir)$(VersionedOutputName).msi&quot;" />
+        </Target>
+
 </Project>

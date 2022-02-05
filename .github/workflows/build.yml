@@ -52,11 +52,11 @@ jobs:
 
     - name: Build the MSI Package
       run: make msi
-      if: github.ref != 'refs/heads/master'
+      if: startsWith(github.ref, 'refs/tags/') != true
 
     - name: Build the MSI Package (release signed)
       run: make msi-release
-      if: github.ref == 'refs/heads/master'
+      if: startsWith(github.ref, 'refs/tags/')
 
     - name: Upload Archive
       uses: actions/upload-artifact@v2

@@ -11,9 +11,7 @@ on:
     branches: [ master ]
 
 jobs:
-
   build-container:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -29,14 +27,13 @@ jobs:
         path: dockerinwsl.tar
   
   build-msi:
-
     runs-on: windows-latest
-
     needs: build-container
     
     env:
       PFX_PASSPHRASE: ${{ secrets.PFX_PASSPHRASE }}
       PFX_THUMBPRINT: ${{ secrets.PFX_THUMBPRINT }}
+      AZURE_SIGN_CLIENT_SECRET: ${{ secrets.AZURE_SIGN_CLIENT_SECRET }}
 
     steps:
     - uses: actions/checkout@v2
@@ -55,6 +52,11 @@ jobs:
 
     - name: Build the MSI Package
       run: make msi
+      if: github.ref != 'refs/heads/master'
+
+    - name: Build the MSI Package (release signed)
+      run: make msi-release
+      if: github.ref == 'refs/heads/master'
 
     - name: Upload Archive
       uses: actions/upload-artifact@v2
@@ -63,9 +65,7 @@ jobs:
         path: "*.msi"
   
   build-choco:
-
     runs-on: windows-latest
-
     needs: build-msi
 
     steps:

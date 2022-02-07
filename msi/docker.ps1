@@ -1,6 +1,7 @@
 param (
     [Parameter(Mandatory = $true, Position = 0)][string]$Command,
-    [bool]$Transcript = $true
+    [bool]$Transcript = $true,
+    [parameter(mandatory=$false, position=1, ValueFromRemainingArguments=$true)]$_
 )
 
 $TempDir = Join-Path $env:LOCALAPPDATA -ChildPath "Temp"

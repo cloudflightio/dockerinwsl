@@ -3,7 +3,7 @@
   <Product Id="*"
            UpgradeCode="A7DFAA38-00C1-4187-9F41-D6C11A8955D5"
            Language="1033"
-           Manufacturer="Cloudflight Austria GmbH"
+           Manufacturer="Cloudflight GmbH"
            Name="DockerInWSL"
            Version="$(var.Version)">
 

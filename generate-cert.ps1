@@ -1,7 +1,7 @@
 $cert = New-SelfSignedCertificate `
     -Type CodeSigningCert `
-    -Subject "CN=Cloudflight Operate Code Signing (TEST), O=Cloudflight Austria GmbH, C=AT" `
-    -FriendlyName "Cloudflight Operate Code Signing (TEST)" `
+    -Subject "CN=Cloudflight Operate Code Signing (INTERNAL), O=Cloudflight GmbH, C=DE" `
+    -FriendlyName "Cloudflight Operate Code Signing (INTERNAL ONLY)" `
     -CertStoreLocation "Cert:\CurrentUser\My" `
     -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
 if(Test-Path "passphrase.secret") {

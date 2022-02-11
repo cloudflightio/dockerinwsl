@@ -9,3 +9,4 @@ msi/bin/
 log.*
 *.secret
 .tmp
+tmp/

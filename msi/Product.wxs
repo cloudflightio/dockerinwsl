@@ -3,7 +3,7 @@
   <Product Id="*"
            UpgradeCode="A7DFAA38-00C1-4187-9F41-D6C11A8955D5"
            Language="1033"
-           Manufacturer="Cloudflight Austria GmbH"
+           Manufacturer="Cloudflight GmbH"
            Name="DockerInWSL"
            Version="$(var.Version)">
 
@@ -79,14 +79,18 @@
     <Feature Id="CompleteFeature">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="InstallerScriptsComponents" />
+      <ComponentGroupRef Id="NetworkComponents" />
       <ComponentRef Id="ApplicationShortcutStartupComponent" />
     </Feature>
   </Product>
 
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <Component Id="ControlFileComponent" Guid="*" Win64="yes">
+      <Component Id="ControlFileBatComponent" Guid="*" Win64="yes">
         <File Id="DOCKER.BAT" Source="docker.bat"></File>
+      </Component>
+      <Component Id="ControlFilePs1Component" Guid="*" Win64="yes">
+        <File Id="DOCKER.PS1" Source="docker.ps1"></File>
       </Component>
       <Component  Id="ImageSourceComponent" Guid="*" Win64="yes">
         <File Source="../dockerinwsl.tar"></File>
@@ -120,6 +124,17 @@
       </Component>
       <Component Id="CommonScriptComponent" Guid="*" Win64="yes">  
           <File Id="_COMMON.PS1" Name="_common.ps1" Source="InstallScripts\_common.ps1"/>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="NetworkComponents" Directory="INSTALLFOLDER">
+      <Component Id="VpnKitComponent" Guid="*" Win64="yes">
+        <File Id="VPNKIT.EXE" Source="tmp\vpnkit.exe"></File>
+      </Component>
+      <Component Id="NPipeRelayComponent" Guid="*" Win64="yes">
+        <File Id="NPIPERELAY.EXE" Source="tmp\npiperelay.exe"></File>
       </Component>
     </ComponentGroup>
   </Fragment>

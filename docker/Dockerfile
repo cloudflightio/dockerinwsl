@@ -30,13 +30,15 @@ RUN apt-get update \
  && curl -SL https://github.com/docker/compose/releases/download/v2.2.3/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose \
  && chmod +x /usr/local/bin/docker-compose
 
-RUN mkdir -p "/usr/share/vpnkit"
-
 # download VPNKit binaries
 ADD https://github.com/sakai135/vpnkit/releases/download/v${VPNKIT_VERSION}/vpnkit-tap-vsockd /usr/local/sbin/vpnkit-tap-vsockd
 RUN chmod +x /usr/local/sbin/vpnkit-tap-vsockd && chown root:root /usr/local/sbin/vpnkit-tap-vsockd
 
 COPY root/ /
-RUN chmod +x /usr/local/bin/wsl-vpnkit && chown root:root /usr/local/bin/wsl-vpnkit
+
+RUN mkdir -p $HOME/.docker/cli-plugins/ \
+ && ln -s /usr/local/bin/docker-compose $HOME/.docker/cli-plugins/docker-compose \
+ && chmod +x /usr/local/bin/* \
+ && chown root:root /usr/local/bin/*
 
 VOLUME ["/var/lib/docker"]

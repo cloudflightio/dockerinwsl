@@ -47,6 +47,19 @@ function Stop-Docker () {
     "$(Get-TimeStamp) shutdown completed!" | Out-Host
 } 
 
+function Restart-Docker () {
+    Stop-Docker
+    Start-Docker
+}
+
+function Show-Logs() {
+    Invoke-Item "\\wsl$\$DISTRONAME\var\log"
+}
+
+function Show-ConfigFolder() {
+    Invoke-Item (Join-Path (Join-Path $env:APPDATA -ChildPath "DockerInWsl") -ChildPath "config")
+}
+
 try {
     switch ($Command) {
         "start" { 
@@ -55,8 +68,18 @@ try {
         "stop" { 
             Stop-Docker 
         }
+        "restart" {
+            Restart-Docker
+        }
+        "show-logs" {
+            Show-Logs
+        }
+        "show-config" {
+            Show-ConfigFolder
+        }
         Default {
-            throw "Invalid Command '$Command'. Only 'start' and 'stop' supported!"
+            Write-Host "USAGE: ./docker.ps1 (start|stop|restart|show-logs|show-config)"
+            throw "Invalid Command '$Command'"
         }
     }
 } 

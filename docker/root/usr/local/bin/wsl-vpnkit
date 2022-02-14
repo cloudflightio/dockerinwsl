@@ -15,7 +15,7 @@ NPIPERELAY_PATH="$PROGRAMFILES/DockerInWSL/npiperelay.exe"
 echo "starting wsl-vpnkit"
 
 # Load defaults
-if [ -f "etc/vpnkit/defaults.conf" ]; then
+if [ -f "/etc/vpnkit/defaults.conf" ]; then
   . /etc/vpnkit/defaults.conf
 fi
 

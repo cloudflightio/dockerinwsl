@@ -81,3 +81,11 @@ The whole installation process is handled by MSI and Powershell. At its core the
   * Check if there is a file at `%APPDATALOCAL%\DockerInWSL\backup.tar.gz` and extract it. If this fails we are NOT aborting the installation because the old distro is already gone. **If you find your WSL Docker empty after an update, look at the `%APPDATALOCAL%\DockerInWSL\backup.tar.gz`-file and try to extract it manually**
   * Finally, the startup-script [docker.bat](msi/docker.bat) is called to start docker.
 * Additionally a Registry-Key is created to support proper updates/uninstalling using MSI.
+
+ ## Starting dockerd manually
+ 
+ Due to a race condition during startup (see https://github.com/cloudflightio/dockerinwsl/issues/8) dockerd sometimes does not start correctly. It can be started manually by running:
+ 
+ ```powershell
+ wsl -d clf_dockerinwsl /bin/ash -cm "dockerd -H unix:///var/run/docker.sock -H tcp://127.0.0.1:2375 < /dev/null > /var/run/docker.log 2>&1 &"
+ ```

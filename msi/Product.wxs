@@ -70,7 +70,8 @@
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFiles64Folder">
         <Directory Id="INSTALLFOLDER" Name="DockerInWSL">
-          <Directory Id="INSTALLSCRIPTSFOLDER" Name="InstallScripts" />
+          <Directory Id="INSTALLSCRIPTSFOLDER" Name="install" />
+          <Directory Id="BINFOLDER" Name="bin" />
         </Directory>
       </Directory>
       <Directory Id="StartupFolder" />
@@ -128,12 +129,12 @@
   </Fragment>
 
   <Fragment>
-    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+    <ComponentGroup Id="ProductComponents" Directory="BINFOLDER">
       <Component Id="ControlFileBatComponent" Guid="*" Win64="yes">
-        <File Id="DOCKER.BAT" Source="docker.bat"></File>
+        <File Id="DOCKER.BAT" Source="app\bin\docker.bat"></File>
       </Component>
       <Component Id="ControlFilePs1Component" Guid="*" Win64="yes">
-        <File Id="DOCKER.PS1" Source="docker.ps1"></File>
+        <File Id="DOCKER.PS1" Source="app\bin\docker.ps1"></File>
       </Component>
       <Component  Id="ImageSourceComponent" Guid="*" Win64="yes">
         <File Source="../dockerinwsl.tar"></File>
@@ -141,6 +142,7 @@
       <Component Id="EnvironmentComponent" Guid="*" Win64="yes">
         <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="DOCKER_HOST" Type="string" Value="tcp://localhost:2375" KeyPath="yes"/>
         <Environment Id="DOCKER_HOST" Name="DOCKER_HOST" Value="tcp://localhost:2375" Permanent="no" Part="all" Action="set" System="no" />
+        <Environment Id="PATH" Name="PATH" Value="[BINFOLDER]" Permanent="yes" Part="last" Action="set" System="no" />
       </Component>
     </ComponentGroup>
     <Component Id="ApplicationShortcutStartupComponent" Guid="*" Win64="yes" Directory="StartupFolder">
@@ -157,16 +159,16 @@
   <Fragment>
     <ComponentGroup Id="InstallerScriptsComponents" Directory="INSTALLSCRIPTSFOLDER">
       <Component Id="InstallScriptComponent" Guid="*" Win64="yes">
-          <File Id="INSTALL.PS1" Name="install.ps1" Source="InstallScripts\install.ps1"/>
+          <File Id="INSTALL.PS1" Name="install.ps1" Source="app\install\install.ps1"/>
       </Component>
       <Component Id="UninstallScriptComponent" Guid="*" Win64="yes">
-          <File Id="UNINSTALL.PS1" Name="uninstall.ps1" Source="InstallScripts\uninstall.ps1"/>
+          <File Id="UNINSTALL.PS1" Name="uninstall.ps1" Source="app\install\uninstall.ps1"/>
       </Component>
       <Component Id="CheckScriptComponent" Guid="*" Win64="yes">
-        <File Id="CHECK.PS1" Name="check.ps1" Source="InstallScripts\check.ps1"/>
+        <File Id="CHECK.PS1" Name="check.ps1" Source="app\install\check.ps1"/>
       </Component>
       <Component Id="CommonScriptComponent" Guid="*" Win64="yes">  
-          <File Id="_COMMON.PS1" Name="_common.ps1" Source="InstallScripts\_common.ps1"/>
+          <File Id="_COMMON.PS1" Name="_common.ps1" Source="app\install\_common.ps1"/>
       </Component>
     </ComponentGroup>
   </Fragment>

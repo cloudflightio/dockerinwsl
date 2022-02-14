@@ -83,7 +83,7 @@ The whole installation process is handled by MSI and PowerShell. At its core, th
     * If one is found, create a backup of `/var/lib/docker` and copy it to the Windows file system under `%APPDATALOCAL%\DockerInWSL\backup.tar.gz`. (For Win11, there is the possibility to use mounted VHDX files and therefore persist the Docker data between updates. We will try to integrate that in the future.)
     * After that, delete the current distribution using `wsl unregister <distro>`. This deletes the entire docker-storage and leads to a complete wipe (from a Docker point of view).
     * You might ask "Why not just leave the distribution be?": We are currently using the stock `dind` Image to reduce maintenance effort as much as possible. Using this makes in-place upgrades quite hard, we, therefore, decided to go "the docker way", using only destroy/recreate as update path. We might reconsider this in future versions but for now, it seems like the best approach.
-  * Import the DockerInWSL TAR from `%APPDATALOCAL%\DockerInWSL\dockerinwsl.tar` to `%APPLOCALDATA\DockerInWSL\wsl` using `wsl --import`.
+  * Import the DockerInWSL TAR from `%APPDATALOCAL%\DockerInWSL\image.tar` to `%APPLOCALDATA\DockerInWSL\wsl` using `wsl --import`.
   * Check whether there is a file at `%APPDATALOCAL%\DockerInWSL\backup.tar.gz` and, if so, extract it. If this fails *do not* abort the installation because the old distribution is already gone. **If you find your WSL Docker empty after an update, check whether** `%APPDATALOCAL%\DockerInWSL\backup.tar.gz` **exists and try to extract it manually**
-  * Finally, the startup script [docker.bat](msi/docker.bat) is called to start Docker.
+  * Finally, the startup script [docker.bat](msi/scripts/docker.bat) is called to start Docker.
 * Additionally a registry key is created to support proper updates/uninstalling using MSI.

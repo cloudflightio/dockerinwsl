@@ -1,9 +1,10 @@
 param (
     [Parameter(Mandatory = $true, Position = 0)][string]$Command,
-    [bool]$Transcript = $true,
+    [Switch]$NoTranscript,
     [parameter(mandatory=$false, position=1, ValueFromRemainingArguments=$true)]$_
 )
 
+$Transcript = -not $NoTranscript
 $TempDir = Join-Path $env:LOCALAPPDATA -ChildPath "Temp"
 $LogFilePath = Join-Path $TempDir -ChildPath "dockerinwsl.log"
 

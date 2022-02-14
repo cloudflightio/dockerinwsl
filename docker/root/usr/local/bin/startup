@@ -1,0 +1,33 @@
+#!/bin/sh
+
+CMDSHELL="$(command -v cmd.exe || echo '/mnt/c/Windows/system32/cmd.exe')"
+APPDATA=$(wslpath "$($CMDSHELL /V:OFF /C 'echo | set /p t=%APPDATA%' 2>/dev/null)")
+
+mkdir -p "$APPDATA/DockerInWsl/config"
+
+install_config() {
+    src="$1"
+    dst="$2"
+    default="$3"
+
+    if [ ! -f "$dst" ] || [ ! -f "$src"  ]; then
+        # if local config (dst) exists but remote (src) does not, migrate
+        if [ ! -f "$src" ] &&  [ -f "$dst" ] ; then
+            mkdir -p "$(dirname "$src")"
+            cp "$dst" "$src"
+        fi
+
+        # if remote config does not exists, create folder and blank file
+        if [ ! -f "$src" ]; then
+            mkdir -p "$(dirname "$src")"
+            touch "$src"
+            echo "$default" > "$src"
+        fi
+
+        # write over local config in any case
+        ln -sf "$src" "$dst"
+    fi
+}
+
+install_config "$APPDATA/DockerInWsl/config/daemon.json" "/etc/docker/daemon.json" "{}"
+install_config "$APPDATA/DockerInWsl/config/custom_dns.conf" "/etc/dnsmasq.d/custom_dns.conf" ""

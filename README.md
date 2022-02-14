@@ -62,7 +62,7 @@ After that TestContainers should recognize the installation and "just work".
 ## How does it work?
 
 This project is a result of our internal dev setup which uses Docker and TestContainers to provide a convenient way to work with cloud-native environments.
-We used "Docker Desktop" in the past but were forced to replace it due to the recent policy change (https://www.docker.com/blog/updating-product-subscriptions/).
+We used "Docker Desktop" in the past but their recent policy change (https://www.docker.com/blog/updating-product-subscriptions/) forced us to rethink that choice and we came up with an alternative solution.
 Our new (this) setup uses WSL2 and Alpine-Linux with Docker to provide a simple replacement. Currently, it does miss some convenience features, like a management-gui but should also be more lightweight and easier to use.
 
 The whole installation process is handled by MSI and Powershell. At its core the installer is performing the following steps:

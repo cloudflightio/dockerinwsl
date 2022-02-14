@@ -96,31 +96,31 @@
         <Shortcut Id="ApplicationStartMenuShortcut" 
                   Name="DockerInWsl Start"
                   Description="Start DockerInWSL WSL2 distro and components"
-                  Target="[#DOCKER.BAT]"
+                  Target="[#DOCKERWSL.BAT]"
                   Arguments="start"
                   WorkingDirectory="INSTALLFOLDER"/>
         <Shortcut Id="ApplicationStopMenuShortcut" 
                   Name="DockerInWsl Stop"
                   Description="Stop DockerInWSL WSL2 distro and components"
-                  Target="[#DOCKER.BAT]"
+                  Target="[#DOCKERWSL.BAT]"
                   Arguments="stop"
                   WorkingDirectory="INSTALLFOLDER"/>
         <Shortcut Id="ApplicationRestartMenuShortcut" 
                   Name="DockerInWsl Restart"
                   Description="Restart DockerInWSL WSL2 distro and components"
-                  Target="[#DOCKER.BAT]"
+                  Target="[#DOCKERWSL.BAT]"
                   Arguments="restart"
                   WorkingDirectory="INSTALLFOLDER"/>
         <Shortcut Id="ApplicationLogsMenuShortcut" 
                   Name="DockerInWsl Logs"
                   Description="Show DockerInWSL log folder"
-                  Target="[#DOCKER.BAT]"
+                  Target="[#DOCKERWSL.BAT]"
                   Arguments="show-logs"
                   WorkingDirectory="INSTALLFOLDER"/>
         <Shortcut Id="ApplicationConfigMenuShortcut" 
                   Name="DockerInWsl Config"
                   Description="Show DockerInWSL config folder"
-                  Target="[#DOCKER.BAT]"
+                  Target="[#DOCKERWSL.BAT]"
                   Arguments="show-config"
                   WorkingDirectory="INSTALLFOLDER"/>
         <RemoveFolder Id="CleanUpShortCut" Directory="ApplicationProgramsFolder" On="uninstall"/>
@@ -131,11 +131,17 @@
 
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="SCRIPTSFOLDER">
-      <Component Id="ControlFileBatComponent" Guid="*" Win64="yes">
+      <Component Id="DockerWslBatComponent" Guid="*" Win64="yes">
+        <File Id="DOCKERWSL.BAT" Source="scripts\docker-wsl.bat"></File>
+      </Component>
+      <Component Id="DockerWslPs1Component" Guid="*" Win64="yes">
+        <File Id="DOCKERWSL.PS1" Source="scripts\docker-wsl.ps1"></File>
+      </Component>
+      <Component Id="DockerBatComponent" Guid="*" Win64="yes">
         <File Id="DOCKER.BAT" Source="scripts\docker.bat"></File>
       </Component>
-      <Component Id="ControlFilePs1Component" Guid="*" Win64="yes">
-        <File Id="DOCKER.PS1" Source="scripts\docker.ps1"></File>
+      <Component Id="DockerComposeBatComponent" Guid="*" Win64="yes">
+        <File Id="DOCKERCOMPOSE.BAT" Source="scripts\docker-compose.bat"></File>
       </Component>
       <Component Id="EnvironmentComponent" Guid="*" Win64="yes">
         <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="DOCKER_HOST" Type="string" Value="tcp://localhost:2375" KeyPath="yes"/>
@@ -149,7 +155,7 @@
     <Component Id="ApplicationShortcutStartupComponent" Guid="*" Win64="yes" Directory="StartupFolder">
       <Shortcut Id="StartupFolderShortcut" Name="dockerinwsl"
                 Description="DockerInWSL Startup"
-                Target="[#DOCKER.BAT]"
+                Target="[#DOCKERWSL.BAT]"
                 Arguments="start"
                 WorkingDirectory="INSTALLFOLDER" />
       <RemoveFile Id="RemoveStartupFolderShortcut" Name="dockerinwsl" On="uninstall" />

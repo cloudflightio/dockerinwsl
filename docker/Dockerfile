@@ -36,11 +36,7 @@ RUN mkdir -p "/usr/share/vpnkit"
 ADD https://github.com/sakai135/vpnkit/releases/download/v${VPNKIT_VERSION}/vpnkit-tap-vsockd /usr/local/sbin/vpnkit-tap-vsockd
 RUN chmod +x /usr/local/sbin/vpnkit-tap-vsockd && chown root:root /usr/local/sbin/vpnkit-tap-vsockd
 
-COPY wsl-vpnkit /usr/local/bin/wsl-vpnkit 
+COPY root/ /
 RUN chmod +x /usr/local/bin/wsl-vpnkit && chown root:root /usr/local/bin/wsl-vpnkit
-
-COPY defaults.conf /usr/share/vpnkit/
-COPY dnsmasq.conf /etc/dnsmasq.conf
-COPY conf.d/* /etc/supervisor/conf.d/
 
 VOLUME ["/var/lib/docker"]

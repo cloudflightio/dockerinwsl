@@ -17,6 +17,11 @@ install_config() {
             cp "$dst" "$src"
         fi
 
+        # if local config does not exists, create folder
+        if [ ! -f "$dst" ]; then
+            mkdir -p "$(dirname "$dst")"
+        fi
+
         # if remote config does not exists, create folder and blank file
         if [ ! -f "$src" ]; then
             mkdir -p "$(dirname "$src")"

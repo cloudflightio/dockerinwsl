@@ -7,9 +7,9 @@ image:
 	docker build -t dockerinwsl:latest .
 	docker rm --force dockerinwsl || true
 	docker run --name dockerinwsl dockerinwsl:latest || true
-	docker export --output=dockerinwsl.tar dockerinwsl
+	docker export --output=image.tar dockerinwsl
 	docker rm --force dockerinwsl
-	mv dockerinwsl.tar ../
+	mv image.tar ../
 
 msi:
 	pwsh.exe -ExecutionPolicy ByPass ./msi/BuildInstaller.ps1

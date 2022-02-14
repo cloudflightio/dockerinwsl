@@ -24,7 +24,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: linux-container-image
-        path: dockerinwsl.tar
+        path: image.tar
   
   build-msi:
     runs-on: windows-latest

@@ -4,7 +4,7 @@ Set-StrictMode -Version 3
 
 Add-Type -AssemblyName Microsoft.VisualBasic
 $lxss = Get-ItemProperty -Path "HKCU:SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss"
-if($lxss -ne 2) {
+if($lxss.DefaultVersion -ne 2) {
     [Microsoft.VisualBasic.Interaction]::MsgBox("WSL2 not installed!`n`nTry running 'wsl --install' in an elevated shell, reboot and start this install again.", 'OKOnly,SystemModal,Critical', "DockerInWSL Installation Error") | Out-Null
     throw "WSL2 not installed"
 }

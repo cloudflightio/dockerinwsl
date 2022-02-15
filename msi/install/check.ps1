@@ -3,8 +3,8 @@ Set-StrictMode -Version 3
 . "$PSScriptRoot\_common.ps1"
 
 Add-Type -AssemblyName Microsoft.VisualBasic
-$lxss = Get-ItemProperty -Path "HKCU:SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss"
-if($lxss.DefaultVersion -ne 2) {
+$wsl2kernelPath = "$env:WINDIR\system32\lxss\tools\kernel"
+if(!(Test-Path -Path $wsl2kernelPath -PathType Leaf)) {
     [Microsoft.VisualBasic.Interaction]::MsgBox("WSL2 not installed!`n`nTry running 'wsl --install' in an elevated shell, reboot and start this install again.", 'OKOnly,SystemModal,Critical', "DockerInWSL Installation Error") | Out-Null
     throw "WSL2 not installed"
 }

@@ -13,23 +13,26 @@ The easiest way is to use our private WinGet Repository. See [cloudflightio/wing
 If you are one of the eager kind just execute the following in a privileged PowerShell window:
 
 ```powershell
-Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/cloudflightio/winget-pkgs/main/cloudflight-code-signing-test.cer' -OutFile $env:temp\cloudflight-code-signing-test.cer; Import-Certificate -FilePath $env:temp\cloudflight-code-signing-test.cer  -CertStoreLocation 'Cert:\LocalMachine\Root' -Verbose
 winget source add --name cloudflight https://cloudflightio.github.io/winget-pkgs
 winget source update --name cloudflight
 winget install dockerinwsl
 ```
 
-> :warning: Currently, we are using self-signed certificates on the Installer and Repository. 
-> This leads to some warning Messages and requires you to import/trust our Certificate.
-> Please notice that this could pose a security risk to your machine. This Project is quite young so please use it with caution.
-
 ## How to use?
 
 There are different ways to use Docker on Windows. 
 
-### WSL
+### Wrapper Scripts
 
-The easiest way to use this installation is to directly call Docker using WSL:
+There are 3 cli-scripts that can be used to control docker in WSL. Just enter one of the following command inside a powershell or cmd window:
+
+* [`docker`](msi/scripts/docker.bat): Simple bat-file wrapper for `wsl -d clf_dockerinwsl -- docker <args>`.
+* [`docker-compose`](msi/scripts/docker-compose.bat): Also just a simple wrapper for `wsl -d clf_dockerinwsl -- docker-compose <args>`
+* [`docker-wsl`](msi/scripts/docker-wsl.bat): A control-tool to interact with the wsl-distro and services inside it. For now it supports `start`,`stop`,`restart`,`show-logs` and `show-config`
+
+### Direct WSL
+
+Another way is to directly call Docker using the WSL binary:
 
 * Open a Powershell window (no "As Administrator" needed).
 * Navigate to the folder you want to use Docker in.
@@ -64,26 +67,36 @@ A simple close and reopen of most Apps should be sufficient, but it's Windows ri
 
 After that, TestContainers should recognize the installation and "just work".
 
+## How to configure?
+
+In some cases it might be necessary to configure part of DockerInWSL manually. There are special config-files located at `%APPDATA%\DockerInWSL\config` (you can use `docker-wsl show-config` to open the folder). Just edit them to your needs and restart the services using `docker-wsl restart`.
+
+Currently the following config-files are available:
+
+* `custom_dns.conf`: Additional dnsmasq config that can be used to add additional host-records or dns-servers. See https://wiki.archlinux.org/title/dnsmasq#DNS_server for more information on the config format
+* `daemon.json`: This is the central docker daemon config file. You can, besides other settings, add insecure registries or change the default subnet if it collides with your network settings. Have a look at our [wiki](https://github.com/cloudflightio/dockerinwsl/wiki) or the [official documentation](https://docs.docker.com/engine/reference/commandline/dockerd/#daemon-configuration-file).
+
 ## How does it work?
 
 This project is a result of our internal dev setup which uses Docker and TestContainers to provide a convenient way to work with cloud native environments.
 We used "Docker Desktop" in the past but their [2021 policy change](https://www.docker.com/blog/updating-product-subscriptions/) forced us to rethink that choice and we came up with an alternative solution.
-Our new (this) setup uses WSL2 and [Alpine Linux](https://alpinelinux.org/) with Docker to provide a simple replacement.
+Our new (this) setup uses WSL2 and [Ubuntu](https://ubuntu.com/) with Docker to provide a simple replacement.
 Currently, it does miss some convenience features, like a management GUI but should also be more lightweight and easier to use.
 
 The whole installation process is handled by MSI and PowerShell. At its core, the installer is performing the following steps:
 
 * Check whether a newer or the same version is installed. → Abort installtion if this is the case.
-* Check whether WSL is installed properly (currently not working). → Abort if no WSL2 install is found. (We decided to avoid installing it automatically because it can have some side-effects in complex environments.)
-* Copy all scripts and a TAR export of the [DockerInDocker-Image](https://hub.docker.com/_/docker) to `%PROGRAMFILES%\DockerInWSL`.
-* Create the directory `%APPDATALOCAL%\DockerInWSL` and also a startup Shortcut in `shell:startup`.
+* Check whether WSL is installed properly. → Abort if no WSL2 install is found. (We decided to avoid installing it automatically because it can have some side-effects in complex environments)
+* Copy all scripts and a TAR export of our [Container-Image](docker/Dockerfile) to `%PROGRAMFILES%\DockerInWSL`.
+* Create the directory `%APPDATALOCAL%\DockerInWSL`, a startup Shortcut in `shell:startup` and some additional links in the start-menu all starting with "DockerInWsl".
 * Set the `DOCKER_HOST` user environment variable to `tcp://localhost:2375`.
+* Add the `%PROGRAMFILES%\DockerInWSL\scripts` directory to the users PATH variable.
 * Run [install.ps1](msi/InstallScripts/install.ps1):
   * Check whether a DockerInWSL distribution is already installed in WSL2
-    * If one is found, create a backup of `/var/lib/docker` and copy it to the Windows file system under `%APPDATALOCAL%\DockerInWSL\backup.tar.gz`. (For Win11, there is the possibility to use mounted VHDX files and therefore persist the Docker data between updates. We will try to integrate that in the future.)
+    * If one is found, create a backup of `/var/lib/docker` and copy it to the Windows file system under `%APPDATALOCAL%\DockerInWSL\backup.tar.gz`. (We are working on a better way to handle this.)
     * After that, delete the current distribution using `wsl unregister <distro>`. This deletes the entire docker-storage and leads to a complete wipe (from a Docker point of view).
     * You might ask "Why not just leave the distribution be?": We are currently using the stock `dind` Image to reduce maintenance effort as much as possible. Using this makes in-place upgrades quite hard, we, therefore, decided to go "the docker way", using only destroy/recreate as update path. We might reconsider this in future versions but for now, it seems like the best approach.
   * Import the DockerInWSL TAR from `%APPDATALOCAL%\DockerInWSL\image.tar` to `%APPLOCALDATA\DockerInWSL\wsl` using `wsl --import`.
   * Check whether there is a file at `%APPDATALOCAL%\DockerInWSL\backup.tar.gz` and, if so, extract it. If this fails *do not* abort the installation because the old distribution is already gone. **If you find your WSL Docker empty after an update, check whether** `%APPDATALOCAL%\DockerInWSL\backup.tar.gz` **exists and try to extract it manually**
-  * Finally, the startup script [docker.bat](msi/scripts/docker.bat) is called to start Docker.
-* Additionally a registry key is created to support proper updates/uninstalling using MSI.
+  * Finally, the startup script [docker-wsl.bat](msi/scripts/docker-wsl.bat) is called to start Docker.
+* Additionally some registry keys are created to support proper updates/uninstalling using MSI.

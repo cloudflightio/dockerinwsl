@@ -1,8 +1,15 @@
 param (
-    [Parameter(Mandatory = $true, Position = 0)][string]$Command,
+    [Parameter(Position = 0)]
+    [ValidateSet("start","stop","restart","show-logs","show-config")]
+    [string]$Command,
     [Switch]$NoTranscript,
     [parameter(mandatory=$false, position=1, ValueFromRemainingArguments=$true)]$_
 )
+
+if([string]::IsNullOrEmpty($Command)) {
+    Write-Host "USAGE: ./docker.ps1 (start|stop|restart|show-logs|show-config)"
+    throw "Invalid Command '$Command'"
+}
 
 $Transcript = -not $NoTranscript
 $TempDir = Join-Path $env:LOCALAPPDATA -ChildPath "Temp"

@@ -135,7 +135,7 @@
         <File Id="DOCKERWSL.BAT" Source="scripts\docker-wsl.bat"></File>
       </Component>
       <Component Id="DockerWslPs1Component" Guid="*" Win64="yes">
-        <File Id="DOCKERWSL.PS1" Source="scripts\docker-wsl.ps1"></File>
+        <File Id="DOCKERWSLCONTROL.PS1" Source="scripts\docker-wsl-control.ps1"></File>
       </Component>
       <Component Id="DockerBatComponent" Guid="*" Win64="yes">
         <File Id="DOCKER.BAT" Source="scripts\docker.bat"></File>

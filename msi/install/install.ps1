@@ -73,7 +73,7 @@ try {
         Write-Host "Docker restored"
     }
 
-    . "$PSScriptRoot\..\scripts\docker-wsl.ps1" -Command "start" -NoTranscript
+    . "$PSScriptRoot\..\scripts\docker-wsl-control.ps1" -Command "start" -NoTranscript
 } finally {
     Stop-Transcript
 }

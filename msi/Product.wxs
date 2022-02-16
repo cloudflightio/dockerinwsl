@@ -143,6 +143,12 @@
       <Component Id="DockerComposeBatComponent" Guid="*" Win64="yes">
         <File Id="DOCKERCOMPOSE.BAT" Source="scripts\docker-compose.bat"></File>
       </Component>
+      <Component Id="DockerGitBashComponent" Guid="*" Win64="yes">
+        <File Id="DOCKER" Source="scripts\docker"></File>
+      </Component>
+      <Component Id="DockerComposeGitBashComponent" Guid="*" Win64="yes">
+        <File Id="DOCKERCOMPOSE" Source="scripts\docker-compose"></File>
+      </Component>
       <Component Id="EnvironmentComponent" Guid="*" Win64="yes">
         <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="DOCKER_HOST" Type="string" Value="tcp://localhost:2375" KeyPath="yes"/>
         <Environment Id="DOCKER_HOST" Name="DOCKER_HOST" Value="tcp://localhost:2375" Permanent="no" Part="all" Action="set" System="no" />

@@ -1,6 +1,6 @@
 # DockerInWSL
 
-This Project is meant to be a minimal alternative to [Docker Desktop](https://docs.docker.com/desktop/windows/install/). It uses WSL2 and the official "Docker" Container-Image (`docker:dind`) as a lightweight replacement for the [Moby VM](https://docs.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/linux-containers).
+This Project is meant to be a minimal alternative to [Docker Desktop](https://docs.docker.com/desktop/windows/install/). It uses WSL2 and a customized Ubuntu Container-Image as a lightweight replacement for the [Moby VM](https://docs.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/linux-containers).
 
 ## How to install?
 

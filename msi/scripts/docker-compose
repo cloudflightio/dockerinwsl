@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# Wrapper script for tunneling docker commands from windows into WSL
+wsl -d clf_dockerinwsl -- docker-compose $@

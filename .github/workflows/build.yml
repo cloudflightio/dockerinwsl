@@ -51,12 +51,18 @@ jobs:
         name: linux-container-image
 
     - name: Build the MSI Package
-      run: make msi
+      run: ./msi/BuildInstaller.ps1
+
+    - name: Sign the MSI Package (test)
+      run: ./msi/SignInstaller.ps1
       if: startsWith(github.ref, 'refs/tags/') != true
 
-    - name: Build the MSI Package (release signed)
-      run: make msi-release
+    - name: Sign the MSI Package (release)
+      run: ./msi/AzureSignInstaller.ps1
       if: startsWith(github.ref, 'refs/tags/')
+
+    - name: Move artifact to top
+      run: mv msi/bin/Release/* ./
 
     - name: Upload Archive
       uses: actions/upload-artifact@v2

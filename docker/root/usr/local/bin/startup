@@ -1,7 +1,9 @@
-#!/bin/sh
+#!/bin/bash
+
+set -eo pipefail
 
 CMDSHELL="$(command -v cmd.exe || echo '/mnt/c/Windows/system32/cmd.exe')"
-APPDATA=$(wslpath "$($CMDSHELL /V:OFF /C 'echo | set /p t=%APPDATA%' 2>/dev/null)")
+APPDATA="$(wslpath "$($CMDSHELL /V:OFF /C 'echo %APPDATA%' | tr -d '\n\r')")"
 
 mkdir -p "$APPDATA/DockerInWsl/config"
 

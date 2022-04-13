@@ -144,6 +144,7 @@ check () {
 }
 
 cleanup () {
+    set +eo pipefail
     echo "cleaning up iptables..."
     iptables -t nat -S | grep "$VPNKIT_GATEWAY_IP" | cut -d " " -f 2- | tr '\n' '\0' | xargs -0 -r -n 1 sh -c 'iptables -t nat -D $1' argv0
     iptables -t nat -S | grep "$VPNKIT_HOST_IP" | cut -d " " -f 2- | tr '\n' '\0' | xargs -0 -r -n 1 sh -c 'iptables -t nat -D $1' argv0
@@ -161,7 +162,7 @@ cleanup () {
         kill -- "-$(cat $TAP_PID_PATH)" || true
         echo "stopped vpnkit-tap-vsockd"
     fi
-
+    set -eo pipefail
     $CMDSHELL /V:OFF /C 'taskkill /F /T /IM vpnkit.exe' 2>/dev/null || :
 }
 

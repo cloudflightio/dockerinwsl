@@ -17,7 +17,7 @@ if($wslHelpText.IndexOf("--import") -lt 0) {
 }
 
 # Check if WSL Update is installed. (Not using Win32_Product to avoid WMI problems)
-$wslUpdatePackageName = "Windows Subsystem 22 for Linux Update"
+$wslUpdatePackageName = "Windows Subsystem for Linux Update"
 $apps = @()
 $apps += Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" # 32 Bit
 $apps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"             # 64 Bit

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+ 
+powershell.exe -noninteractive -ExecutionPolicy ByPass "& '$(dirname "$0")/docker-wsl-control.ps1' $*"

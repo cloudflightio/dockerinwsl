@@ -30,9 +30,9 @@ function Get-TimeStamp {
 
 function Start-Docker () {
     "$(Get-TimeStamp) Starting ..." | Out-Host
-    wsl -d $DISTRONAME /bin/bash -c "[ -f $SUPERVISOR_PID ] && cat $SUPERVISOR_PID | xargs ps -p > /dev/null"
+    wsl -d $DISTRONAME -u root /bin/bash -c "[ -f $SUPERVISOR_PID ] && cat $SUPERVISOR_PID | xargs ps -p > /dev/null"
     if ($LASTEXITCODE -ne 0) {
-        wsl -d $DISTRONAME /bin/bash -c "supervisord -c /etc/supervisor/supervisord.conf"
+        wsl -d $DISTRONAME -u root /bin/bash -c "supervisord -c /etc/supervisor/supervisord.conf"
         "$(Get-TimeStamp) ... started!" | Out-Host
     }
     else {
@@ -42,9 +42,9 @@ function Start-Docker () {
  
 function Stop-Docker () {
     "$(Get-TimeStamp) Stopping ..." | Out-Host
-    wsl -d $DISTRONAME /bin/bash -c "[ -f $SUPERVISOR_PID ] && cat $SUPERVISOR_PID | xargs ps -p > /dev/null"
+    wsl -d $DISTRONAME -u root /bin/bash -c "[ -f $SUPERVISOR_PID ] && cat $SUPERVISOR_PID | xargs ps -p > /dev/null"
     if ($LASTEXITCODE -eq 0) {
-        wsl -d $DISTRONAME /bin/bash -c "supervisorctl stop all; kill `$(cat $SUPERVISOR_PID)"
+        wsl -d $DISTRONAME -u root /bin/bash -c "supervisorctl stop all; kill `$(cat $SUPERVISOR_PID)"
         "$(Get-TimeStamp) ... stopped!" | Out-Host
     }
     else {

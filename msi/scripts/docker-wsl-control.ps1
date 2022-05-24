@@ -51,7 +51,7 @@ function Stop-Docker () {
         "$(Get-TimeStamp) docker seems to be stopped already. $SUPERVISOR_PID not found" | Out-Host
     }
     "$(Get-TimeStamp) Shutting down WSL ..." | Out-Host
-    wsl --shutdown $DISTRONAME
+    wsl -t $DISTRONAME
     "$(Get-TimeStamp) shutdown completed!" | Out-Host
 } 
 

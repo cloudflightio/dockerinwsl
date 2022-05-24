@@ -16,6 +16,12 @@ if($wslHelpText.IndexOf("--import") -lt 0) {
     throw "WSL2 not initialized"
 }
 
-if ((Get-WmiObject Win32_Product -filter "name like '%Windows Subsystem for Linux Update%'" | Measure-Object).Count -le 0) {
-    [Microsoft.VisualBasic.Interaction]::MsgBox("No 'Windows Subsystem for Linux Update' found!`nPlease visit https://docs.microsoft.com/en-us/windows/wsl/install-manual and install the update if this installation fails.") | Out-Null
+# Check if WSL Update is installed. (Not using Win32_Product to avoid WMI problems)
+$wslUpdatePackageName = "Windows Subsystem 22 for Linux Update"
+$apps = @()
+$apps += Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" # 32 Bit
+$apps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"             # 64 Bit
+$appNames = $apps | Where-Object { $_.PSobject.Properties.Name.Contains("DisplayName") } | Select-Object -ExpandProperty DisplayName
+if (($appNames -match $wslUpdatePackageName | Measure-Object).Count -le 0) {
+    [Microsoft.VisualBasic.Interaction]::MsgBox("No '$wslUpdatePackageName' found!`nPlease visit https://docs.microsoft.com/en-us/windows/wsl/install-manual and install the update if this installation fails.", 'OKOnly,SystemModal,Exclamation', "DockerInWSL Installation Warning") | Out-Null
 }

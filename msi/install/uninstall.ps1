@@ -2,6 +2,7 @@
 
 . "$PSScriptRoot\_common.ps1"
 $distroname = $InstallConfig.distroname
+$distroname_data = $InstallConfig.distroname_data
 $local_base = $InstallConfig.local_base
 
 if (Test-Command wsl) {
@@ -12,26 +13,9 @@ if (Test-Command wsl) {
         throw "Failed to execute wsl command (error: $LASTEXITCODE)."
     }
     if ($wslList -match $distroname) {
-        & wsl "--shutdown" "$distroname"
-        if($LASTEXITCODE -ne 0){
-            throw "Unable to shutdown WSL distro '$distroname'!"
-        }
-        Write-Output "WSL distro stopped"
-
-        Push-Location $InstallConfig.local_base
-        & wsl -d "$distroname" tar -czpf backup.tar.gz /var/lib/docker
-        if($LASTEXITCODE -ne 0){
-            throw "Backup of existing WSL distro '$distroname' failed!"
-        }
-        Write-Output "WSL distro backup done"
-        Pop-Location
-
-        & wsl --unregister "$distroname"
-        if($LASTEXITCODE -ne 0){
-            Write-Warning "Unable to unregister WSL distro $distroname"
-        } else {
-            Write-Output "WSL Distro $distroname removed"
-        }
+        Stop-WslDistro -Distroname $distroname 
+        Remove-WslDistro -Distroname $distroname
+        Remove-WslDistro -Distroname $distroname_data
         Remove-Item -Path $local_base -Force -Recurse
     }
     else {

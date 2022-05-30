@@ -2,3 +2,4 @@
 docker text eol=lf
 docker-compose text eol=lf
 docker-wsl  text eol=lf
+docker/**/* text eol=lf

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -eo pipefail
+
+mkdir -p /mnt/wsl/clf_dockerinwsl
+
+echo "mounting data:/var/lib/docker/ => /mnt/wsl/dockerinwsl_data/ ..."
+wsl.exe -d clf_dockerinwsl_data -u root mount --bind /var/lib/docker/ /mnt/wsl/clf_dockerinwsl
+echo "mounting /mnt/wsl/dockerinwsl_data/ => daemon:/var/lib/docker/ ..."
+wsl.exe -d clf_dockerinwsl -u root mount --bind /mnt/wsl/clf_dockerinwsl /var/lib/docker/
+
+echo "... done mounting"

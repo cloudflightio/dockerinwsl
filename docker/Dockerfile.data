@@ -1,0 +1,13 @@
+FROM alpine
+LABEL maintainer="Cloudflight GmbH"
+
+COPY /root/etc/wsl.conf /etc/
+RUN mkdir -p /var/lib/docker \
+ && delgroup ping \
+ && addgroup -g 999 -S docker \
+ && adduser -u 1000 -G docker -s /bin/ash docker -D
+
+USER docker
+
+CMD /bin/ash
+VOLUME /var/lib/docker

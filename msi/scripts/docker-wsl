@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
- 
-powershell.exe -noninteractive -ExecutionPolicy ByPass "& '$(dirname "$0")/docker-wsl-control.ps1' $*"
+CURDIRWIN="$(dirname "$0" | sed 's/\/c/C:/' | sed 's/\//\\/g')"
+PRECMD="$(command -v winpty | tr -d '\n')"
+$PRECMD powershell.exe -ExecutionPolicy ByPass "& '$CURDIRWIN\docker-wsl-control.ps1' $*"

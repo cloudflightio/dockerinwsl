@@ -78,7 +78,7 @@ try {
         if (Test-Path ( Join-Path -Path $InstallConfig.local_base -ChildPath "backup.tar.gz" )) {
             Write-Host "Existing Docker backup found! Restoring ..."
             Push-Location $InstallConfig.local_base
-            & wsl -d "$DISTRONAME" -u root -- sh -c 'wsl-mount && cd / && tar -xpzf $(pwd)/backup.tar.gz -C /'
+            & wsl -d "$DISTRONAME" -u root -- sh -c 'ONESHOT=1 wsl-mount && cd / && tar -xpzf $(pwd)/backup.tar.gz -C /'
             if($LASTEXITCODE -ne 0){
                 Write-Warning "Restore Docker on WSL distro '$distroname' failed! Please inspect the backup-file at $($InstallConfig.local_base)\backup.tar.gz and apply it manually to /var/lib/docker inside WSL"
             }

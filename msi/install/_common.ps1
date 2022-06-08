@@ -2,7 +2,7 @@ Set-StrictMode -Version 3
 
 $Global:InstallConfig = @{
     distroname      = 'clf_dockerinwsl'
-    distroname_data = 'clf_dockerinwsl_data'
+    distroname_data = 'dockerinwsl_data' # not starting with clf_ because of install check would match on data
     local_base      = "$env:LOCALAPPDATA\DockerInWSL"
 }
 
@@ -11,6 +11,17 @@ $ErrorActionPreference = 'Stop'; # stop on all errors
 function Test-Command($command) {
     Get-Command $command -ErrorAction SilentlyContinue | Out-Null;
     return $?
+}
+
+function Get-WslDistroList {
+    $wslList = wsl --list
+    if (!$wslList) {
+        throw "Failed to execute wsl command (error: $LASTEXITCODE)."
+    }
+    # Hotfix for https://github.com/microsoft/WSL/issues/7767
+    $wslList = (($wslList -join ' ').ToCharArray() | % {$result = ""} { $result += ($_ | Where-Object { $_ -imatch "[ a-z_]" }) } { $result })
+
+    return $wslList
 }
 
 function Import-WslDistro {

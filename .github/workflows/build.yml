@@ -24,7 +24,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: linux-container-image
-        path: image.tar
+        path: image*.tar
   
   build-msi:
     runs-on: windows-latest
@@ -40,7 +40,7 @@ jobs:
         WIX_PATH: ${{ env.wix }}
       run: echo "$env:WIX_PATH\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-    - name: Download a single artifact
+    - name: Download artifacts
       uses: actions/download-artifact@v2
       with:
         name: linux-container-image

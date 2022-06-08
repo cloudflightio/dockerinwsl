@@ -84,7 +84,7 @@
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="InstallerScriptsComponents" />
       <ComponentGroupRef Id="NetworkComponents" />
-      <ComponentRef Id="ImageSourceComponent" />
+      <ComponentGroupRef Id="ImageComponents" />
       <ComponentRef Id="ApplicationShortcutStartupComponent" />
       <ComponentRef Id="ApplicationShortcutComponent" />
     </Feature>
@@ -158,9 +158,14 @@
         <Environment Id="PATH" Name="PATH" Value="[SCRIPTSFOLDER]" Permanent="yes" Part="last" Action="set" System="no" />
       </Component>
     </ComponentGroup>
-    <Component Id="ImageSourceComponent" Guid="*" Win64="yes" Directory="INSTALLFOLDER">
-      <File Id="IMAGE.TAR" Source="../image.tar"></File>
-    </Component>
+    <ComponentGroup Id="ImageComponents" Directory="INSTALLFOLDER">
+      <Component Id="ImageSourceComponent" Guid="*" Win64="yes">
+        <File Id="IMAGE.TAR" Source="../image.tar"></File>
+      </Component>
+      <Component Id="ImageDataSourceComponent" Guid="*" Win64="yes">
+        <File Id="IMAGEDATA.TAR" Source="../image-data.tar"></File>
+      </Component>
+    </ComponentGroup>
     <Component Id="ApplicationShortcutStartupComponent" Guid="*" Win64="yes" Directory="StartupFolder">
       <Shortcut Id="StartupFolderShortcut" Name="dockerinwsl"
                 Description="DockerInWSL Startup"

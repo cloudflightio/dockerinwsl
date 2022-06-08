@@ -2,11 +2,33 @@
 
 set -eo pipefail
 
+log() {
+  echo "[$(date -Ins)] $*"
+}
+
 mkdir -p /mnt/wsl/clf_dockerinwsl
 
-echo "mounting data:/var/lib/docker/ => /mnt/wsl/dockerinwsl_data/ ..."
-wsl.exe -d clf_dockerinwsl_data -u root mount --bind /var/lib/docker/ /mnt/wsl/clf_dockerinwsl
-echo "mounting /mnt/wsl/dockerinwsl_data/ => daemon:/var/lib/docker/ ..."
-wsl.exe -d clf_dockerinwsl -u root mount --bind /mnt/wsl/clf_dockerinwsl /var/lib/docker/
+while true; do
 
-echo "... done mounting"
+log "check mountpoint /var/lib/docker"
+
+if mountpoint /var/lib/docker/
+then
+
+  log "is mounted"
+
+else
+
+  log "mounting data:/var/lib/docker/ => /mnt/wsl/dockerinwsl_data/ ..."
+  wsl.exe -d dockerinwsl_data -u root mount --bind /var/lib/docker/ /mnt/wsl/clf_dockerinwsl || exit 1
+  log "mounting /mnt/wsl/dockerinwsl_data/ => daemon:/var/lib/docker/ ..."
+  wsl.exe -d clf_dockerinwsl -u root mount --bind /mnt/wsl/clf_dockerinwsl /var/lib/docker/ || exit 1
+
+  log "... done mounting"
+
+fi
+
+[ -n "$ONESHOT" ] && exit 0
+sleep 30
+
+done

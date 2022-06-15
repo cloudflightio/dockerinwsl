@@ -41,7 +41,7 @@ RUN mkdir -p $HOME/.docker/cli-plugins/ \
  && chmod +x /usr/local/bin/* \
  && chown root:root /usr/local/bin/*
 
-RUN useradd -u 1000 -g docker -s /bin/bash docker
+RUN useradd -m -u 1000 -g docker -s /bin/bash docker
 USER docker
 
 VOLUME ["/var/lib/docker"]

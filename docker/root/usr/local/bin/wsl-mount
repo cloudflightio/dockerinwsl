@@ -6,7 +6,7 @@ _diw_plugin_globalvars
 
 # bind mount docker data dir from data volume to runtime dir so that it survives updates/upgrades
 _chk_mnt_varlibdocker() {
-  [ "$(type -t "_diw_plugin${FUNCNAME[0]}_prehook")" = "function" ] && _diw_plugin${FUNCNAME[0]}_prehook
+  [ "$(type -t "_diw_plugin${FUNCNAME[0]}_prehook")" = "function" ] && _diw_plugin${FUNCNAME[0]}_prehook || true
   test -d "${DIW_VARLIBDOCKER_SRC}" || mkdir -p "${DIW_VARLIBDOCKER_SRC}"
   log "check mountpoint ${DIW_VARLIBDOCKER_DST}"
   if ! mountpoint "${DIW_VARLIBDOCKER_DST}" >/dev/null 2>&1 ; then
@@ -16,12 +16,12 @@ _chk_mnt_varlibdocker() {
     wsl.exe -d clf_dockerinwsl -u root mount --bind "${DIW_VARLIBDOCKER_SRC}" "${DIW_VARLIBDOCKER_DST}" || exit 1
     log "... done mounting"
   fi
-  [ "$(type -t "_diw_plugin${FUNCNAME[0]}_posthook")" = "function" ] && _diw_plugin${FUNCNAME[0]}_posthook
+  [ "$(type -t "_diw_plugin${FUNCNAME[0]}_posthook")" = "function" ] && _diw_plugin${FUNCNAME[0]}_posthook || true
 }
 
 # bind mount certain subdirs from windows user home dir to docker homedir so that integration is seemless
 _chk_mnt_winuserdirstuff() {
-  [ "$(type -t "_diw_plugin${FUNCNAME[0]}_prehook")" = "function" ] && _diw_plugin${FUNCNAME[0]}_prehook
+  [ "$(type -t "_diw_plugin${FUNCNAME[0]}_prehook")" = "function" ] && _diw_plugin${FUNCNAME[0]}_prehook || true
   for CHKDIR in "${DIW_WINUSER_BINDDIRS[@]}" ; do
     SRCDIR="${DIW_WINUSER_HOME}/${CHKDIR}"
     DSTDIR="${DIW_LINUSER_HOME}/${CHKDIR}"
@@ -34,7 +34,7 @@ _chk_mnt_winuserdirstuff() {
       log "... done mounting"
     fi
   done
-  [ "$(type -t "_diw_plugin${FUNCNAME[0]}_posthook")" = "function" ] && _diw_plugin${FUNCNAME[0]}_posthook
+  [ "$(type -t "_diw_plugin${FUNCNAME[0]}_posthook")" = "function" ] && _diw_plugin${FUNCNAME[0]}_posthook || true
 }
 
 while true; do

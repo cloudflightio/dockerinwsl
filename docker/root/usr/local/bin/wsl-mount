@@ -1,34 +1,46 @@
 #!/bin/bash
 
 set -eo pipefail
+. /etc/DockerInWsl/diw-commons.sh
+_diw_plugin_globalvars
 
-log() {
-  echo "[$(date -Ins)] $*"
+# bind mount docker data dir from data volume to runtime dir so that it survives updates/upgrades
+_chk_mnt_varlibdocker() {
+  [ "$(type -t "_diw_plugin${FUNCNAME[0]}_prehook")" = "function" ] && _diw_plugin${FUNCNAME[0]}_prehook
+  test -d "${DIW_VARLIBDOCKER_SRC}" || mkdir -p "${DIW_VARLIBDOCKER_SRC}"
+  log "check mountpoint ${DIW_VARLIBDOCKER_DST}"
+  if ! mountpoint "${DIW_VARLIBDOCKER_DST}" >/dev/null 2>&1 ; then
+    log "mounting \"data:${DIW_VARLIBDOCKER_DST}\" => \"${DIW_VARLIBDOCKER_SRC}\" ..."
+    wsl.exe -d dockerinwsl_data -u root mount --bind "${DIW_VARLIBDOCKER_DST}" "${DIW_VARLIBDOCKER_SRC}" || exit 1
+    log "mounting \"${DIW_VARLIBDOCKER_SRC}\" \"${DIW_VARLIBDOCKER_DST}\" ..."
+    wsl.exe -d clf_dockerinwsl -u root mount --bind "${DIW_VARLIBDOCKER_SRC}" "${DIW_VARLIBDOCKER_DST}" || exit 1
+    log "... done mounting"
+  fi
+  [ "$(type -t "_diw_plugin${FUNCNAME[0]}_posthook")" = "function" ] && _diw_plugin${FUNCNAME[0]}_posthook
 }
 
-mkdir -p /mnt/wsl/clf_dockerinwsl
+# bind mount certain subdirs from windows user home dir to docker homedir so that integration is seemless
+_chk_mnt_winuserdirstuff() {
+  [ "$(type -t "_diw_plugin${FUNCNAME[0]}_prehook")" = "function" ] && _diw_plugin${FUNCNAME[0]}_prehook
+  for CHKDIR in "${DIW_WINUSER_BINDDIRS[@]}" ; do
+    SRCDIR="${DIW_WINUSER_HOME}/${CHKDIR}"
+    DSTDIR="${DIW_LINUSER_HOME}/${CHKDIR}"
+    test -d "${SRCDIR}" || su -c - ${DIW_USER} "mkdir -p \"${SRCDIR}\""
+    test -d "${DSTDIR}" || su -c - ${DIW_USER} "mkdir -p \"${DSTDIR}\""
+    log "check mountpoint ${DSTDIR}"
+    if ! mountpoint "${DSTDIR}" >/dev/null 2>&1 ; then
+      log "mounting ${SRCDIR} => ${DSTDIR} ..."
+      wsl.exe -d clf_dockerinwsl -u root mount --bind "${SRCDIR}" "${DSTDIR}" || exit 1
+      log "... done mounting"
+    fi
+  done
+  [ "$(type -t "_diw_plugin${FUNCNAME[0]}_posthook")" = "function" ] && _diw_plugin${FUNCNAME[0]}_posthook
+}
 
 while true; do
-
-log "check mountpoint /var/lib/docker"
-
-if mountpoint /var/lib/docker/
-then
-
-  log "is mounted"
-
-else
-
-  log "mounting data:/var/lib/docker/ => /mnt/wsl/dockerinwsl_data/ ..."
-  wsl.exe -d dockerinwsl_data -u root mount --bind /var/lib/docker/ /mnt/wsl/clf_dockerinwsl || exit 1
-  log "mounting /mnt/wsl/dockerinwsl_data/ => daemon:/var/lib/docker/ ..."
-  wsl.exe -d clf_dockerinwsl -u root mount --bind /mnt/wsl/clf_dockerinwsl /var/lib/docker/ || exit 1
-
-  log "... done mounting"
-
-fi
-
-[ -n "$ONESHOT" ] && exit 0
-sleep 30
-
+  _chk_mnt_varlibdocker
+  _chk_mnt_winuserdirstuff
+  _diw_plugin_mainloop
+  [ -n "$ONESHOT" ] && exit 0
+  sleep 30
 done

@@ -1,53 +1,11 @@
 #!/bin/bash
 
 set -eo pipefail
-
-CMDSHELL="$(command -v cmd.exe || echo '/mnt/c/Windows/system32/cmd.exe')"
-APPDATA="$(wslpath "$($CMDSHELL /V:OFF /C 'echo %APPDATA%' | tr -d '\n\r')")"
-
-mkdir -p "$APPDATA/DockerInWsl/config"
-
-log() {
-  echo "[$(date -Ins)] $@"
-}
-
-install_config() {
-    src="$1"
-    dst="$2"
-    default="$3"
-
-    if [ ! -f "$dst" ] || [ ! -f "$src"  ]; then
-        log "config missing ($dst or $src)"
-
-        if [ ! -f "$src" ] &&  [ -f "$dst" ] ; then
-            log "local config ($dst) exists but remote ($src) does not => migrating"
-            mkdir -p "$(dirname "$src")"
-            cp "$dst" "$src"
-        fi
-
-        if [ ! -f "$dst" ]; then
-            log "local config ($dst) does not exists => creating folder"
-            mkdir -p "$(dirname "$dst")"
-        fi
-
-        if [ ! -f "$src" ]; then
-            log "remote config ($src) does not exists => creating folder and default file"
-            mkdir -p "$(dirname "$src")"
-            touch "$src"
-            echo "$default" > "$src"
-        fi
-
-        log "update local config link ($src => $dst)"
-        ln -sf "$src" "$dst"
-    fi
-}
+. /etc/DockerInWsl/diw-commons.sh
 
 while true; do
-
-log "check config and install if needed"
-install_config "$APPDATA/DockerInWsl/config/daemon.json" "/etc/docker/daemon.json" "{}" || exit 1
-install_config "$APPDATA/DockerInWsl/config/custom_dns.conf" "/etc/dnsmasq.d/custom_dns.conf" "" || exit 1
-
-sleep 30
-
+    log "check config and install if needed"
+    install_config "${APPDATA}/DockerInWsl/config/daemon.json" "/etc/docker/daemon.json" "{}" || exit 1
+    install_config "${APPDATA}/DockerInWsl/config/custom_dns.conf" "/etc/dnsmasq.d/custom_dns.conf" "" || exit 1
+    sleep 30
 done

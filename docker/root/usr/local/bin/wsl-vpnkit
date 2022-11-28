@@ -20,10 +20,9 @@
 # USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 set -eo pipefail
+. /etc/DockerInWsl/diw-commons.sh
+_diw_plugin_globalvars
 
-CMDSHELL="$(command -v cmd.exe || echo '/mnt/c/Windows/system32/cmd.exe')"
-PROGRAMFILES="$(wslpath "$($CMDSHELL /V:OFF /C 'echo %PROGRAMFILES%' | tr -d '\n\r')")"
-LOCALAPPDATA="$(wslpath "$($CMDSHELL /V:OFF /C 'echo %LOCALAPPDATA%' | tr -d '\n\r')")"
 CONF_PATH="$LOCALAPPDATA/DockerInWSL/wsl-vpnkit/wsl-vpnkit.conf"
 HTTP_PROXY_CONFIG_PATH="$LOCALAPPDATA/DockerInWSL/wsl-vpnkit/http-proxy.json"
 SOCKET_PATH="/var/run/wsl-vpnkit.sock"

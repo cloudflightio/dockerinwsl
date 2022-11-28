@@ -11,7 +11,10 @@ log() {
 
 ### common vars
 CMDSHELL="$(command -v cmd.exe || echo '/mnt/c/Windows/system32/cmd.exe')"
+PROGRAMFILES="$(wslpath "$($CMDSHELL /V:OFF /C 'echo %PROGRAMFILES%' | tr -d '\n\r')")"
 APPDATA="$(wslpath "$($CMDSHELL /V:OFF /C 'echo %APPDATA%' | tr -d '\n\r')")"
+LOCALAPPDATA="$(wslpath "$($CMDSHELL /V:OFF /C 'echo %LOCALAPPDATA%' | tr -d '\n\r')")"
+
 DIW_USER="docker"
 DIW_LINUSER_HOME="/home/${DIW_USER}"
 DIW_WINUSER_HOME="$(wslpath "$($CMDSHELL /V:OFF /C 'echo %USERPROFILE%' | tr -d '\n\r')")"

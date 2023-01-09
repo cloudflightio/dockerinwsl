@@ -55,10 +55,9 @@ install_config() {
         fi
 
         if [ ! -f "$src" ]; then
-            log "remote config ($src) does not exists => creating folder and default file"
+            log "remote config ($src) does not exists => creating folder and copying from default file"
             mkdir -p "$(dirname "$src")"
-            touch "$src"
-            echo "$default" > "$src"
+            cp "$default" "$src"
         fi
 
         log "update local config link ($src => $dst)"

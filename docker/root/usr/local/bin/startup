@@ -6,8 +6,8 @@ _diw_plugin_globalvars
 
 while true; do
     log "check config and install if needed"
-    install_config "${APPDATA}/DockerInWsl/config/daemon.json" "/etc/docker/daemon.json" "{}" || exit 1
-    install_config "${APPDATA}/DockerInWsl/config/custom_dns.conf" "/etc/dnsmasq.d/custom_dns.conf" "" || exit 1
+    install_config "${APPDATA}/DockerInWsl/config/daemon.json" "/etc/docker/daemon.json" "/etc/DockerInWsl/default-docker-daemon.json" || exit 1
+    install_config "${APPDATA}/DockerInWsl/config/custom_dns.conf" "/etc/dnsmasq.d/custom_dns.conf" "/etc/DockerInWsl/default-custom-dns.conf" || exit 1
     _diw_plugin_mainloop
     sleep 30
 done

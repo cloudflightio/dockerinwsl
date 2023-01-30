@@ -18,6 +18,7 @@ RUN apt-get update \
     dnsmasq \
     chrony \
     jq \
+    make \
  && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
  && echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
@@ -27,9 +28,8 @@ RUN apt-get update \
     docker-ce \
     docker-ce-cli \
     containerd.io \
- && rm -rf /var/lib/apt/lists/* \
- && curl -SL https://github.com/docker/compose/releases/download/v2.2.3/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose \
- && chmod +x /usr/local/bin/docker-compose
+    docker-compose-plugin \
+ && rm -rf /var/lib/apt/lists/*
 
 # download VPNKit binaries
 ADD https://github.com/sakai135/vpnkit/releases/download/v${VPNKIT_VERSION}/vpnkit-tap-vsockd /usr/local/sbin/vpnkit-tap-vsockd

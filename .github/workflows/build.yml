@@ -21,7 +21,7 @@ jobs:
       run: make image
     
     - name: Upload Archive (tar)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: linux-container-image
         path: image*.tar
@@ -66,7 +66,7 @@ jobs:
       run: mv msi/bin/Release/* ./
 
     - name: Upload Archive
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: msi-package
         path: "*.msi"

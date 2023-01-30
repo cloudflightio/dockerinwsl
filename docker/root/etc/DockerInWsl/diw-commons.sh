@@ -36,31 +36,47 @@ test -f "${DIW_CALLEDUTIL_PLUGIN}" && . "${DIW_CALLEDUTIL_PLUGIN}"
 
 ### common functions
 install_config() {
-    src="$1"
-    dst="$2"
-    default="$3"
+    src="$1"     # remote  e.g. "${APPDATA}/DockerInWsl/config/daemon.json"
+    dst="$2"     # local   e.g. "/etc/docker/daemon.json"
+    default="$3" # default e.g. "/etc/DockerInWsl/default-docker-daemon.json"
 
-    if [ ! -f "$dst" ] || [ ! -f "$src"  ]; then
-        log "config missing ($dst or $src)"
+    tmp_file="/tmp/$(echo "$dst" | tr '/' '_')"
 
-        if [ ! -f "$src" ] &&  [ -f "$dst" ] ; then
-            log "local config ($dst) exists but remote ($src) does not => migrating"
-            mkdir -p "$(dirname "$src")"
-            cp "$dst" "$src"
-        fi
+    [ -f "$tmp_file" ] || touch "$tmp_file"
+
+    if [ ! -f "$dst" ] || [ ! -f "$src"  ] || [ ! -s "$src" ]; then
+        log "config missing ($dst or $src) or empty"
 
         if [ ! -f "$dst" ]; then
             log "local config ($dst) does not exists => creating folder"
             mkdir -p "$(dirname "$dst")"
         fi
 
+        if [ ! -f "$src" ] && [ -f "$dst" ]; then
+            log "local config ($dst) exists but remote ($src) does not => move"
+            cp "$dst" "$src"
+            rm "$dst"
+        fi
+
         if [ ! -f "$src" ]; then
-            log "remote config ($src) does not exists => creating folder and copying from default file"
+            log "remote config ($src) does not exists => creating folder and copying from default file"   
             mkdir -p "$(dirname "$src")"
             cp "$default" "$src"
+        elif [ ! -s "$src" ]; then
+            log "remote config ($src) is empty => filling with default file"
+            cat "$default" > "$src"
         fi
 
         log "update local config link ($src => $dst)"
         ln -sf "$src" "$dst"
+    elif [ "$src" -nt "$tmp_file" ]; then
+        echo "$(stat -c %y "$src") -nt $(stat -c %y "$tmp_file")"
+        if [ "${src: -5}" == ".json" ]; then
+            log "remote config updated => merging defaults"
+            jq --argjson existing "$(<"$src")" ' . * $existing' "$default" > "$tmp_file"
+            cp -f "$tmp_file" "$src"
+            sleep 1
+            touch "$tmp_file"
+        fi
     fi
 }

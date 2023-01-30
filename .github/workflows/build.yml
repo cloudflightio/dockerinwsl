@@ -41,7 +41,7 @@ jobs:
       run: echo "$env:WIX_PATH\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
     - name: Download artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: linux-container-image
 
@@ -79,7 +79,7 @@ jobs:
 
     steps:
     - name: Download a single artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: msi-package
     - name: Release

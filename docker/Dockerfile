@@ -1,7 +1,6 @@
 FROM ubuntu:22.04
 
-ARG VPNKIT_VERSION=0.5.0-20211026
-ARG NPIPERELAY_VERSION=0.1.0
+ARG WSL_VPNKIT_VERSION=0.3.8
 
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \ 
@@ -19,6 +18,10 @@ RUN apt-get update \
     chrony \
     jq \
     make \
+    uuid-runtime \
+    net-tools \
+    isc-dhcp-client \
+    udhcpc \
  && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
  && echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
@@ -33,8 +36,14 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # download VPNKit binaries
-ADD https://github.com/sakai135/vpnkit/releases/download/v${VPNKIT_VERSION}/vpnkit-tap-vsockd /usr/local/sbin/vpnkit-tap-vsockd
-RUN chmod +x /usr/local/sbin/vpnkit-tap-vsockd && chown root:root /usr/local/sbin/vpnkit-tap-vsockd
+RUN wget https://github.com/sakai135/wsl-vpnkit/releases/download/v${WSL_VPNKIT_VERSION}/wsl-vpnkit.tar.gz \
+ && tar --strip-components=1 -xf wsl-vpnkit.tar.gz app/wsl-vpnkit files/wsl-gvproxy.exe files/wsl-vm \
+ && rm wsl-vpnkit.tar.gz \
+ && mv wsl-vm /usr/local/sbin/ \
+ && chmod +x /usr/local/sbin/wsl-vm \
+ && chown root:root /usr/local/sbin/wsl-vm \
+ && mkdir -p /opt/driver/ \
+ && mv wsl-gvproxy.exe /opt/driver/
 
 COPY root/ /
 

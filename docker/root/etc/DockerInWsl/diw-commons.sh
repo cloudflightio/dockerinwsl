@@ -21,6 +21,7 @@ DIW_WINUSER_HOME="$(wslpath "$($CMDSHELL /V:OFF /C 'echo %USERPROFILE%' | tr -d 
 DIW_WINUSER_BINDDIRS=(".docker")
 DIW_CONFIGDIR="${APPDATA}/DockerInWsl/config"
 DIW_PLUGINDIR="${APPDATA}/DockerInWsl/plugin"
+DIW_DRIVERDIR="${LOCALAPPDATA}/DockerInWsl/driver"
 DIW_VARLIBDOCKER_SRC="/mnt/wsl/clf_dockerinwsl"
 DIW_VARLIBDOCKER_DST="/var/lib/docker"
 DIW_CALLEDUTIL_PLUGIN="${DIW_PLUGINDIR}/${DIW_CALLEDUTIL_PLUGIN}"
@@ -78,5 +79,32 @@ install_config() {
             sleep 1
             touch "$tmp_file"
         fi
+    fi
+}
+
+hash () {
+    md5sum "$1" | awk '{ print $1 }'
+}
+
+install_file () {
+    src="$1"
+    dst="$2"
+    src_filename="$(basename "$1")"
+
+    if [ -f "$src" ]; then
+        if [ ! -f "$dst" ]; then
+            mkdir -p "$(dirname "$dst")"
+            cp "$src" "$dst"
+            log "copied $src_filename to $dst"
+        else
+            if [ "$(hash "$src")" != "$(hash "$dst")" ]; then
+                cp -f "$src" "$dst"
+                log "updated $src_filename at $dst"
+            fi
+        fi
+    fi
+    if [ ! -f "$dst" ]; then
+        log "$1 not found at $dst"
+        exit 1
     fi
 }

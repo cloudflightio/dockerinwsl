@@ -1,12 +1,17 @@
 #!/bin/bash
 
 set -eo pipefail
+# shellcheck source=../../../etc/DockerInWsl/diw-commons.sh
 . /etc/DockerInWsl/diw-commons.sh
 _diw_plugin_globalvars
+
+log "install drivers"
+install_file "/opt/driver/wsl-gvproxy.exe" "${DIW_DRIVERDIR}/wsl-gvproxy.exe"
 
 while true; do
     install_config "${APPDATA}/DockerInWsl/config/daemon.json" "/etc/docker/daemon.json" "/etc/DockerInWsl/default-docker-daemon.json" || exit 1
     install_config "${APPDATA}/DockerInWsl/config/custom_dns.conf" "/etc/dnsmasq.d/custom_dns.conf" "/etc/DockerInWsl/default-custom-dns.conf" || exit 1
+    install_config "${APPDATA}/DockerInWsl/config/wsl-vpnkit.conf" "/etc/DockerInWsl/wsl-vpnkit.conf" "/etc/DockerInWsl/default-wsl-vpnkit.conf" || exit 1
     _diw_plugin_mainloop
     chmod -R a+r /var/log
     sleep 30

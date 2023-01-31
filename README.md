@@ -58,6 +58,12 @@ Now you should be able to connect to Docker from within IntelliJ and control you
 > :information_source: GUI actions for `docker-compose up` (e.g. "Run" icon in Docker Compose file editor)
 > currently are not supported by IntelliJ if Docker binaries are stored/executed within WSL, which is the case with DockerInWSL.
 
+#### Intellij 2023
+Starting with IntelliJ 2023 you can directly connect to WSL to also start containers or run services directly from the docker-compose file. To set it up go to `Settings` -> `Build,Execution,Deployment` -> `Docker` -> `Connect to Docker daemon with: WSL` and select <kbd>clf_dockerinwsl</kbd> there.
+
+Additionally, you can also configure the terminal to use wsl by using <kbd>wsl.exe -d clf_dockerinwsl</kbd> as Shell start command in `Settings` -> `Tools` -> `Terminal`
+
+
 ### TestContainers
 
 We are using [TestContainers](https://www.testcontainers.org/) quite a lot. After installing DockerInWSL

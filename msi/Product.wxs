@@ -79,7 +79,6 @@
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="InstallerScriptsComponents" />
       <ComponentGroupRef Id="ImageComponents" />
-      <ComponentRef Id="NetworkComponent" />
       <ComponentRef Id="ApplicationShortcutStartupComponent" />
       <ComponentRef Id="ApplicationShortcutComponent" />
     </Feature>
@@ -180,14 +179,5 @@
         <RemoveFolder Id='RemoveInstallScriptFolder' Directory='INSTALLSCRIPTSFOLDER' On='uninstall' />
       </Component>
     </ComponentGroup>
-  </Fragment>
-
-  <Fragment>
-    <Component Id="NetworkComponent" Directory="INSTALLFOLDER" Guid="{960F3B63-0E9F-4118-9643-4850B8D693C4}" Win64="yes">
-      <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="binaries" Type="integer" Value="1" KeyPath="yes"/>
-      <File Id="VPNKIT.EXE" Source="tmp\vpnkit.exe"></File>
-      <File Id="NPIPERELAY.EXE" Source="tmp\npiperelay.exe"></File>
-      <RemoveFolder Id="RemoveInstallFolderNetworkComponent" On='uninstall' />
-    </Component>
   </Fragment>
 </Wix>

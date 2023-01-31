@@ -4,7 +4,7 @@
         <PropertyGroup>
                 <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
                 <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
-                <ProductVersion>1.4</ProductVersion>
+                <ProductVersion>1.5</ProductVersion>
                 <ProjectGuid>{88999f3a-a44d-4fa6-aac6-30cbccdf6e4d}</ProjectGuid>
                 <SchemaVersion>2.0</SchemaVersion>
                 <OutputName>DockerInWSL</OutputName>

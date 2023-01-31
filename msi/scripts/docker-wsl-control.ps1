@@ -78,7 +78,7 @@ function Get-CalledName {
 function Invoke-DockerEngineBackup {
     Stop-Docker
     Push-Location $LocalBase
-    & wsl -d "$DISTRONAME" -u root -- sh -c 'wsl-mount && tar -czpf backup.tar.gz /var/lib/docker'
+    & wsl -d "$DISTRONAME" -u root -- sh -c 'ONESHOT=1 wsl-mount && tar -czpf backup.tar.gz /var/lib/docker'
     if($LASTEXITCODE -ne 0) {
         Write-Warning "Backup of existing WSL distro '$DISTRONAME' failed!"
     } else {
@@ -93,7 +93,7 @@ function Invoke-DockerEngineRestore {
         Write-Host "Existing Docker backup found! Restoring ..."
         Stop-Docker
         Push-Location $LocalBase
-        & wsl -d "$DISTRONAME" -u root -- sh -c 'wsl-mount && cd / && tar -xpzf $(pwd)/backup.tar.gz -C /'
+        & wsl -d "$DISTRONAME" -u root -- sh -c 'ONESHOT=1 wsl-mount && cd / && tar -xpzf $(pwd)/backup.tar.gz -C /'
         if($LASTEXITCODE -ne 0) {
             Write-Warning "Restore Docker on WSL distro '$DISTRONAME' failed! Please inspect the backup-file at $LocalBase\backup.tar.gz and apply it manually to /var/lib/docker inside WSL"
         }

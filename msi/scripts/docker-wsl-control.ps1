@@ -22,7 +22,7 @@ function Start-Docker () {
     "$(Get-TimeStamp) Starting ..." | Out-Host
     wsl -d $DISTRONAME -u root /bin/bash -c "[ -f $SUPERVISOR_PID ] && cat $SUPERVISOR_PID | xargs ps -p > /dev/null"
     if ($LASTEXITCODE -ne 0) {
-        wsl -d $DISTRONAME -u root /bin/bash -c "supervisord -c /etc/supervisor/supervisord.conf"
+        wsl -d $DISTRONAME -u root /bin/bash -c "umask 022; supervisord -c /etc/supervisor/supervisord.conf"
         "$(Get-TimeStamp) ... started!" | Out-Host
     }
     else {

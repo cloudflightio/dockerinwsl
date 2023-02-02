@@ -40,7 +40,9 @@ COPY root/ /
 RUN mkdir -p $HOME/.docker/cli-plugins/ \
  && ln -s /usr/local/bin/docker-compose $HOME/.docker/cli-plugins/docker-compose \
  && chmod +x /usr/local/bin/* \
- && chown root:root /usr/local/bin/*
+ && chown root:root /usr/local/bin/* \
+ && update-alternatives --set iptables /usr/sbin/iptables-legacy \
+ && update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 
 RUN useradd -m -u 1000 -g docker -s /bin/bash docker
 USER docker

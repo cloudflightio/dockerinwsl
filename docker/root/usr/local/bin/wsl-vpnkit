@@ -123,6 +123,10 @@ ipconfig () {
     iptables -t nat -A OUTPUT -d "$WSL2_GATEWAY_IP/32" -j DNAT --to-destination "$VPNKIT_HOST_IP"
     iptables -t nat -A POSTROUTING -o "$TAP_NAME" -j MASQUERADE
     echo "iptables done"
+
+    echo "iptables cleanup ..."
+    iptables-save | awk 'substr($0,1,1)!="-" || !x[$0]++' | iptables-restore
+    echo "iptables cleanup done"
 }
 
 check_ping () {

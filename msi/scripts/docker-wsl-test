@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+CURDIRWIN="$(dirname "$0" | sed 's/\/c/C:/' | sed 's/\//\\/g')"
+PRECMD="$(command -v winpty | tr -d '\n')"
+$PRECMD powershell.exe -ExecutionPolicy ByPass "& '$CURDIRWIN\docker-wsl-test.ps1' $*"

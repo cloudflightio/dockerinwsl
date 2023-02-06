@@ -152,6 +152,15 @@
       <Component Id="DockerWsleGitBashComponent" Guid="*" Win64="yes">
         <File Id="DOCKERWSL" Source="scripts\docker-wsl"></File>
       </Component>
+      <Component Guid="*" Win64="yes">
+        <File Source="scripts\docker-wsl-test"></File>
+      </Component>
+      <Component Guid="*" Win64="yes">
+        <File Source="scripts\docker-wsl-test.ps1"></File>
+      </Component>
+      <Component Guid="*" Win64="yes">
+        <File Source="scripts\docker-wsl-test.bat"></File>
+      </Component>
       <Component Id="EnvironmentComponent" Guid="*" Win64="yes">
         <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="DOCKER_HOST" Type="string" Value="tcp://localhost:2375" KeyPath="yes"/>
         <Environment Id="DOCKER_HOST" Name="DOCKER_HOST" Value="tcp://localhost:2375" Permanent="no" Part="all" Action="set" System="no" />

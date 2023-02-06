@@ -29,8 +29,8 @@ SOCKET_PATH="/var/run/wsl-vpnkit.sock"
 PIPE_PATH="//./pipe/wsl-vpnkit"
 TAP_PID_PATH="/var/run/vpnkit-tap-vsockd.pid"
 
-VPNKIT_PATH="$PROGRAMFILES/DockerInWSL/vpnkit.exe"
-NPIPERELAY_PATH="$PROGRAMFILES/DockerInWSL/npiperelay.exe"
+VPNKIT_PATH="$LOCALAPPDATA/DockerInWSL/vpnkit.exe"
+NPIPERELAY_PATH="$LOCALAPPDATA/DockerInWSL/npiperelay.exe"
 
 echo "starting wsl-vpnkit"
 

@@ -7,7 +7,7 @@
            Name="DockerInWSL"
            Version="$(var.Version)">
 
-    <Package InstallerVersion="301" Compressed="yes" Platform="x64" />
+    <Package InstallerVersion="301" Compressed="yes" Platform="x64" InstallScope='perUser' InstallPrivileges='limited'/>
 
     <MajorUpgrade Schedule="afterInstallInitialize" DowngradeErrorMessage="A later version of [ProductName] is already installed. Setup will now exit." />
 
@@ -17,11 +17,6 @@
         <![CDATA[NOT ALLUSERS]]>
     </Condition> 
 
-    <!-- This condition adds an item to the LaunchCondition table of the MSI to block a user -->
-    <!-- from installing this product unless they have administrative privileges on the system. -->
-    <Condition Message="You must have Administrative rights on this machine to install [ProductName].">
-        <![CDATA[Privileged]]>
-    </Condition>
 
     <Property Id="POWERSHELLEXE">
     <RegistrySearch Id="POWERSHELLEXE"
@@ -68,7 +63,7 @@
     <MediaTemplate EmbedCab="yes" />
 
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFiles64Folder">
+      <Directory Id="LocalAppDataFolder" Name="AppData">
         <Directory Id="INSTALLFOLDER" Name="DockerInWSL">
           <Directory Id="INSTALLSCRIPTSFOLDER" Name="install" />
           <Directory Id="SCRIPTSFOLDER" Name="scripts" />
@@ -83,8 +78,8 @@
     <Feature Id="CompleteFeature">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="InstallerScriptsComponents" />
-      <ComponentGroupRef Id="NetworkComponents" />
       <ComponentGroupRef Id="ImageComponents" />
+      <ComponentRef Id="NetworkComponent" />
       <ComponentRef Id="ApplicationShortcutStartupComponent" />
       <ComponentRef Id="ApplicationShortcutComponent" />
     </Feature>
@@ -131,35 +126,19 @@
 
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="SCRIPTSFOLDER">
-      <Component Id="DockerWslBatComponent" Guid="*" Win64="yes">
-        <File Id="DOCKERWSL.BAT" Source="scripts\docker-wsl.bat"></File>
-      </Component>
-      <Component Id="DockerWslPs1Component" Guid="*" Win64="yes">
-        <File Id="DOCKERWSLCONTROL.PS1" Source="scripts\docker-wsl-control.ps1"></File>
-      </Component>
-      <Component Id="DockerBatComponent" Guid="*" Win64="yes">
-        <File Id="DOCKER.BAT" Source="scripts\docker.bat"></File>
-      </Component>
-      <Component Id="DockerComposeBatComponent" Guid="*" Win64="yes">
-        <File Id="DOCKERCOMPOSE.BAT" Source="scripts\docker-compose.bat"></File>
-      </Component>
-      <Component Id="DockerGitBashComponent" Guid="*" Win64="yes">
-        <File Id="DOCKER" Source="scripts\docker"></File>
-      </Component>
-      <Component Id="DockerComposeGitBashComponent" Guid="*" Win64="yes">
-        <File Id="DOCKERCOMPOSE" Source="scripts\docker-compose"></File>
-      </Component>
-      <Component Id="DockerWsleGitBashComponent" Guid="*" Win64="yes">
-        <File Id="DOCKERWSL" Source="scripts\docker-wsl"></File>
-      </Component>
-      <Component Guid="*" Win64="yes">
+      <Component Id="DockerWslScriptComponent" Guid="{7CF4D26F-D8FC-41B1-9964-CFF22E0387A4}" Win64="yes">
+        <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="scripts" Type="integer" Value="1" KeyPath="yes"/>
+        <File Source="scripts\docker-wsl.bat"></File>
+        <File Source="scripts\docker-wsl-control.ps1"></File>
+        <File Source="scripts\docker.bat" Id="DOCKERWSL.BAT"></File>
+        <File Source="scripts\docker-compose.bat"></File>
+        <File Source="scripts\docker"></File>
+        <File Source="scripts\docker-compose"></File>
+        <File Source="scripts\docker-wsl"></File>
         <File Source="scripts\docker-wsl-test"></File>
-      </Component>
-      <Component Guid="*" Win64="yes">
         <File Source="scripts\docker-wsl-test.ps1"></File>
-      </Component>
-      <Component Guid="*" Win64="yes">
         <File Source="scripts\docker-wsl-test.bat"></File>
+        <RemoveFolder Id='RemoveScriptFolder' Directory='SCRIPTSFOLDER' On='uninstall' />
       </Component>
       <Component Id="EnvironmentComponent" Guid="*" Win64="yes">
         <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="DOCKER_HOST" Type="string" Value="tcp://localhost:2375" KeyPath="yes"/>
@@ -168,11 +147,15 @@
       </Component>
     </ComponentGroup>
     <ComponentGroup Id="ImageComponents" Directory="INSTALLFOLDER">
-      <Component Id="ImageSourceComponent" Guid="*" Win64="yes">
+      <Component Id="ImageSourceComponent" Guid="{19486112-569B-4011-B939-5BD02ABB754A}" Win64="yes">
+        <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="image-root" Type="integer" Value="1" KeyPath="yes"/>
         <File Id="IMAGE.TAR" Source="../image.tar"></File>
+        <RemoveFolder Id="RemoveInstallFolderImageComponent" On='uninstall' />
       </Component>
-      <Component Id="ImageDataSourceComponent" Guid="*" Win64="yes">
+      <Component Id="ImageDataSourceComponent" Guid="{8E7247E4-2806-4073-AD31-E84D43014AC7}" Win64="yes">
+        <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="image-data" Type="integer" Value="1" KeyPath="yes"/>
         <File Id="IMAGEDATA.TAR" Source="../image-data.tar"></File>
+        <RemoveFolder Id="RemoveInstallFolderImageDataComponent" On='uninstall' />
       </Component>
     </ComponentGroup>
     <Component Id="ApplicationShortcutStartupComponent" Guid="*" Win64="yes" Directory="StartupFolder">
@@ -187,30 +170,24 @@
   </Fragment>
 
   <Fragment>
-    <ComponentGroup Id="InstallerScriptsComponents" Directory="INSTALLSCRIPTSFOLDER">
-      <Component Id="InstallScriptComponent" Guid="*" Win64="yes">
-          <File Id="INSTALL.PS1" Name="install.ps1" Source="install\install.ps1"/>
-      </Component>
-      <Component Id="UninstallScriptComponent" Guid="*" Win64="yes">
-          <File Id="UNINSTALL.PS1" Name="uninstall.ps1" Source="install\uninstall.ps1"/>
-      </Component>
-      <Component Id="CheckScriptComponent" Guid="*" Win64="yes">
+    <ComponentGroup Id="InstallerScriptsComponents" Directory="INSTALLSCRIPTSFOLDER"> 
+      <Component Id="InstallScriptComponent" Guid="{0A55CB29-9BF6-44B6-A5A7-12DED99CB498}" Win64="yes">
+        <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="install" Type="integer" Value="1" KeyPath="yes"/>
+        <File Id="INSTALL.PS1" Name="install.ps1" Source="install\install.ps1"/>
+        <File Id="UNINSTALL.PS1" Name="uninstall.ps1" Source="install\uninstall.ps1"/>
         <File Id="CHECK.PS1" Name="check.ps1" Source="install\check.ps1"/>
-      </Component>
-      <Component Id="CommonScriptComponent" Guid="*" Win64="yes">  
-          <File Id="_COMMON.PS1" Name="_common.ps1" Source="install\_common.ps1"/>
+        <File Id="_COMMON.PS1" Name="_common.ps1" Source="install\_common.ps1"/>
+        <RemoveFolder Id='RemoveInstallScriptFolder' Directory='INSTALLSCRIPTSFOLDER' On='uninstall' />
       </Component>
     </ComponentGroup>
   </Fragment>
 
   <Fragment>
-    <ComponentGroup Id="NetworkComponents" Directory="INSTALLFOLDER">
-      <Component Id="VpnKitComponent" Guid="*" Win64="yes">
-        <File Id="VPNKIT.EXE" Source="tmp\vpnkit.exe"></File>
-      </Component>
-      <Component Id="NPipeRelayComponent" Guid="*" Win64="yes">
-        <File Id="NPIPERELAY.EXE" Source="tmp\npiperelay.exe"></File>
-      </Component>
-    </ComponentGroup>
+    <Component Id="NetworkComponent" Directory="INSTALLFOLDER" Guid="{960F3B63-0E9F-4118-9643-4850B8D693C4}" Win64="yes">
+      <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="binaries" Type="integer" Value="1" KeyPath="yes"/>
+      <File Id="VPNKIT.EXE" Source="tmp\vpnkit.exe"></File>
+      <File Id="NPIPERELAY.EXE" Source="tmp\npiperelay.exe"></File>
+      <RemoveFolder Id="RemoveInstallFolderNetworkComponent" On='uninstall' />
+    </Component>
   </Fragment>
 </Wix>

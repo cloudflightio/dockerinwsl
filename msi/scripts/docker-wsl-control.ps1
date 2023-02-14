@@ -18,6 +18,13 @@ function Get-TimeStamp {
     return "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)
 }
 
+function Get-Version {
+    return  Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall" | 
+        Get-ItemProperty | 
+        Where-Object { ($_.Publisher -match "cloudflight") -and ($_.DisplayName -match "DockerInWSL")} | 
+        Select-Object -ExpandProperty DisplayVersion
+}
+
 function Start-Docker () {
     "$(Get-TimeStamp) Starting ..." | Out-Host
     wsl -d $DISTRONAME -u root /bin/bash -c "[ -f $SUPERVISOR_PID ] && cat $SUPERVISOR_PID | xargs ps -p > /dev/null"
@@ -47,6 +54,12 @@ function Stop-Docker () {
 
 function Restart-Docker () {
     Stop-Docker
+    Start-Docker
+}
+
+function Restart-DockerAndWsl () {
+    Stop-Docker
+    wsl --shutdown
     Start-Docker
 }
 
@@ -113,6 +126,7 @@ $cmds = [ordered]@{
     "start"       = { Start-Docker }
     "stop"        = { Stop-Docker }
     "restart"     = { Restart-Docker }
+    "restart-all" = { Restart-DockerAndWsl }
     "status"      = { Get-DockerMachineStatus }
     "enter"       = { Enter-DockerMachineAsUser }
     "enter-root"  = { Enter-DockerMachineAsRoot }
@@ -121,6 +135,7 @@ $cmds = [ordered]@{
     "restore"     = { Invoke-DockerEngineRestore }
     "backup"      = { Invoke-DockerEngineBackup }
     "help"        = { Write-CommandHelp }
+    "version"     = { Get-Version }
 }
 
 try {

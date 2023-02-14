@@ -20,6 +20,33 @@
 # USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 set -eo pipefail
+
+get_interface_ip () {
+    ip -o -f inet addr show "$1" | awk '/scope global/ {print $4}' | head -n1 | cut -d'/' -f1
+}
+
+cidr_to_netmask() {
+    value="$(( 0xffffffff ^ (1 << (32 - $1)) - 1 ))"
+    echo "$(( (value >> 24) & 0xff )).$(( (value >> 16) & 0xff )).$(( (value >> 8) & 0xff )).$(( value & 0xff ))"
+}
+
+get_interface_cidr () {
+    ip -o -f inet addr show "$1" | awk '/scope global/ {print $4}' | head -n1 | cut -d'/' -f2
+}
+
+get_interface_subnet () {
+    cidr_to_netmask "$(get_interface_cidr "$1")"
+}
+
+get_interface_gateway_ip () {
+    interface_ip=$(get_interface_ip "$1")
+    interface_sn=$(get_interface_subnet "$1")
+    IFS=. read -r i1 i2 i3 i4 <<< "$interface_ip"
+    IFS=. read -r m1 m2 m3 m4 <<< "$interface_sn"
+    echo "$i4 $m4" > /dev/null
+    printf "%d.%d.%d.1\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))"
+}
+
 # shellcheck source=../../../etc/DockerInWsl/diw-commons.sh
 . /etc/DockerInWsl/diw-commons.sh
 _diw_plugin_globalvars
@@ -54,9 +81,11 @@ CHECK_DNS=${CHECK_DNS:-$DEFAULT_CHECK_DNS}
 CHECK_HOST=${CHECK_HOST:-$DEFAULT_CHECK_HOST}
 DNS_IP=${DNS_IP:-$DEFAULT_DNS_IP}
 
-WSL2_GATEWAY_IP="$(ip -o -f inet addr show eth0 | awk '/scope global/ {print $4}' | head -n1 | cut -d'/' -f1 |  awk '{OFS="."; split($0,a,"."); print a[1],a[2],a[3],"1"}')"
+WSL2_GATEWAY_INTERFACE="eth0"
+WSL2_GATEWAY_SUBNET="$(get_interface_subnet $WSL2_GATEWAY_INTERFACE)"
+WSL2_GATEWAY_IP="$(get_interface_gateway_ip "$WSL2_GATEWAY_INTERFACE")"
 WSL2_TAP_NAME=eth0
-WSL2_VM_IP="$(ifconfig $WSL2_TAP_NAME | awk '/inet /{print substr($2, 6)}')"
+WSL2_VM_IP="$(get_interface_ip "$WSL2_TAP_NAME")"
 
 run () {
     log "starting gvproxy at $GVPROXY_PATH..."
@@ -94,7 +123,7 @@ tap_wait () {
 
 ipconfig () {
     log "configuring ip..."
-    ip a add "$VPNKIT_WSL2_IP/255.255.255.0" dev "$TAP_NAME" || true
+    ip a add "$VPNKIT_LOWEST_IP/$WSL2_GATEWAY_SUBNET" dev "$TAP_NAME" || true
     ip link set dev "$TAP_NAME" up
     ip route | grep -e "$VPNKIT_GATEWAY_IP" -e 'default' | tr '\n' '\0' | xargs -0 -n 1 sh -c 'ip route del $1' argv0
     ip route replace default via "$VPNKIT_GATEWAY_IP" dev "$TAP_NAME"
@@ -164,13 +193,9 @@ cleanup () {
     ip route | grep -e "$VPNKIT_GATEWAY_IP" -e 'default' | tr '\n' '\0' | xargs -r -0 -n 1 sh -c 'ip route del $1' argv0
     ip link set dev "$TAP_NAME" down || true
     ip link delete "$TAP_NAME" || true
-    ip addr add "$WSL2_VM_IP/255.255.255.0" dev "$WSL2_TAP_NAME"
+    ip addr add "$WSL2_VM_IP/$WSL2_GATEWAY_SUBNET" dev "$WSL2_TAP_NAME"
     ip route add default via "$WSL2_GATEWAY_IP" dev "$WSL2_TAP_NAME"
     log "ip cleanup done"
-
-    log "restoring WSL 2 ip route..."
-      
-    log "restored WSL 2 ip route"
 
     set -eo pipefail
     $CMDSHELL /V:OFF /C 'taskkill /F /T /IM wsl-gvproxy.exe' 2>/dev/null || :

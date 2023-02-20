@@ -29,6 +29,7 @@ RUN apt-get update \
     docker-ce-cli \
     containerd.io \
     docker-compose-plugin \
+    docker-buildx-plugin \
  && rm -rf /var/lib/apt/lists/*
 
 # download VPNKit binaries

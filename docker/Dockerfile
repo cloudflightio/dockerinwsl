@@ -1,4 +1,5 @@
 FROM ubuntu:22.04
+LABEL maintainer="Cloudflight GmbH"
 
 ARG WSL_VPNKIT_VERSION=0.3.8
 
@@ -7,7 +8,6 @@ RUN apt-get update \
     socat \
     iputils-ping \
     dnsutils \
-    wget \
     curl \
     ca-certificates \
     gnupg \
@@ -36,7 +36,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # download VPNKit binaries
-RUN wget https://github.com/sakai135/wsl-vpnkit/releases/download/v${WSL_VPNKIT_VERSION}/wsl-vpnkit.tar.gz \
+RUN curl -L "https://github.com/sakai135/wsl-vpnkit/releases/download/v${WSL_VPNKIT_VERSION}/wsl-vpnkit.tar.gz" --output wsl-vpnkit.tar.gz \
  && tar --strip-components=1 -xf wsl-vpnkit.tar.gz app/wsl-vpnkit files/wsl-gvproxy.exe files/wsl-vm \
  && rm wsl-vpnkit.tar.gz \
  && mv wsl-vm /usr/local/sbin/ \
@@ -47,8 +47,8 @@ RUN wget https://github.com/sakai135/wsl-vpnkit/releases/download/v${WSL_VPNKIT_
 
 COPY root/ /
 
-RUN mkdir -p $HOME/.docker/cli-plugins/ \
- && ln -s /usr/local/bin/docker-compose $HOME/.docker/cli-plugins/docker-compose \
+RUN mkdir -p "$HOME/.docker/cli-plugins/" \
+ && ln -s /usr/local/bin/docker-compose "$HOME/.docker/cli-plugins/docker-compose" \
  && chmod +x /usr/local/bin/* \
  && chown root:root /usr/local/bin/* \
  && update-alternatives --set iptables /usr/sbin/iptables-legacy \

@@ -1,4 +1,4 @@
-FROM alpine
+FROM alpine:3.17
 LABEL maintainer="Cloudflight GmbH"
 
 COPY /root/etc/wsl.conf /etc/
@@ -9,5 +9,5 @@ RUN mkdir -p /var/lib/docker \
 
 USER docker
 
-CMD /bin/ash
+CMD [ "/bin/ash" ]
 VOLUME /var/lib/docker

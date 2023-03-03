@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
-	"time"
-
 	"fyne.io/systray"
 	"github.com/cloudflightio/dockerinwsl/gui/icon"
+	"log"
+	"os/exec"
+	"strings"
+	"time"
 )
 
 func main() {
@@ -17,84 +19,122 @@ func main() {
 	systray.Run(onReady, onExit)
 }
 
-func addQuitItem() {
-	mQuit := systray.AddMenuItem("Quit", "Quit the whole app")
-	mQuit.Enable()
-	go func() {
-		<-mQuit.ClickedCh
-		fmt.Println("Requesting quit")
-		systray.Quit()
-		fmt.Println("Finished quitting")
-	}()
+func onReady() {
+	go buildMenu()
 }
 
-func onReady() {
+func buildMenu() {
 	systray.SetTemplateIcon(icon.Data, icon.Data)
-	systray.SetTitle("Awesome App")
-	systray.SetTooltip("Lantern")
-	addQuitItem()
+	systray.SetTitle("DockerInWsl")
+	systray.SetTooltip("DockerInWsl")
 
-	// We can manipulate the systray in other goroutines
-	go func() {
-		systray.SetTemplateIcon(icon.Data, icon.Data)
-		systray.SetTitle("Awesome App")
-		systray.SetTooltip("Pretty awesome棒棒嗒")
-		mChange := systray.AddMenuItem("Change Me", "Change Me")
-		mChecked := systray.AddMenuItemCheckbox("Checked", "Check Me", true)
-		mEnabled := systray.AddMenuItem("Enabled", "Enabled")
-		// Sets the icon of a menu item. Only available on Mac.
-		mEnabled.SetTemplateIcon(icon.Data, icon.Data)
+	status := systray.AddMenuItem("status", "")
+	systray.AddSeparator()
 
-		systray.AddMenuItem("Ignored", "Ignored")
+	go checkStatus(status)
 
-		subMenuTop := systray.AddMenuItem("SubMenuTop", "SubMenu Test (top)")
-		subMenuMiddle := subMenuTop.AddSubMenuItem("SubMenuMiddle", "SubMenu Test (middle)")
-		subMenuBottom := subMenuMiddle.AddSubMenuItemCheckbox("SubMenuBottom - Toggle Panic!", "SubMenu Test (bottom) - Hide/Show Panic!", false)
-		subMenuBottom2 := subMenuMiddle.AddSubMenuItem("SubMenuBottom - Panic!", "SubMenu Test (bottom)")
+	enter := systray.AddMenuItem("Enter", "")
+	enterRoot := systray.AddMenuItem("Enter with root", "")
+	showLogs := systray.AddMenuItem("Show logs", "")
+	showConfig := systray.AddMenuItem("Show configs", "")
+	advanced := systray.AddMenuItem("Advanced", "")
+	restore := advanced.AddSubMenuItem("Restore", "")
+	backup := advanced.AddSubMenuItem("Backup", "")
+	systray.AddSeparator()
+	restart := systray.AddMenuItem("Restart", "")
+	restartAll := systray.AddMenuItem("Restart all", "")
+	start := systray.AddMenuItem("Start", "")
+	stop := systray.AddMenuItem("Stop", "")
+	systray.AddSeparator()
+	quit := systray.AddMenuItem("Quit", "")
 
-		systray.AddSeparator()
-		mToggle := systray.AddMenuItem("Toggle", "Toggle some menu items")
-		shown := true
-		toggle := func() {
-			if shown {
-				subMenuBottom.Check()
-				subMenuBottom2.Hide()
-				mEnabled.Hide()
-				shown = false
-			} else {
-				subMenuBottom.Uncheck()
-				subMenuBottom2.Show()
-				mEnabled.Show()
-				shown = true
+	for {
+
+		var cmd *exec.Cmd
+
+		select {
+		case <-quit.ClickedCh:
+			systray.Quit()
+		case <-enter.ClickedCh:
+			cmd = exec.Command("cmd", "/C", "start", "docker-wsl enter")
+		case <-enterRoot.ClickedCh:
+			cmd = exec.Command("cmd", "/C", "start", "docker-wsl", "enter-root")
+		case <-showLogs.ClickedCh:
+			cmd = exec.Command("docker-wsl", "show-logs")
+		case <-showConfig.ClickedCh:
+			cmd = exec.Command("docker-wsl", "show-config")
+		case <-restart.ClickedCh:
+			cmd = exec.Command("docker-wsl", "restart")
+		case <-restartAll.ClickedCh:
+			cmd = exec.Command("docker-wsl", "restart-all")
+		case <-start.ClickedCh:
+			cmd = exec.Command("docker-wsl", "start")
+		case <-stop.ClickedCh:
+			cmd = exec.Command("docker-wsl", "stop")
+		case <-restore.ClickedCh:
+			cmd = exec.Command("docker-wsl", "restore")
+		case <-backup.ClickedCh:
+			cmd = exec.Command("docker-wsl", "backup")
+		}
+
+		if cmd != nil {
+			if err := cmd.Run(); err != nil {
+				log.Println("Error:", err)
 			}
 		}
-		mReset := systray.AddMenuItem("Reset", "Reset all items")
+	}
+}
 
-		for {
-			select {
-			case <-mChange.ClickedCh:
-				mChange.SetTitle("I've Changed")
-			case <-mChecked.ClickedCh:
-				if mChecked.Checked() {
-					mChecked.Uncheck()
-					mChecked.SetTitle("Unchecked")
-				} else {
-					mChecked.Check()
-					mChecked.SetTitle("Checked")
+func checkStatus(statusMenu *systray.MenuItem) {
+	ticker := time.NewTicker(5 * time.Second)
+
+	subMenuMap := make(map[string]*systray.MenuItem)
+	handleStatusSubMenu(&subMenuMap, statusMenu)
+
+	for range ticker.C {
+		handleStatusSubMenu(&subMenuMap, statusMenu)
+	}
+}
+
+func getStatus() (output string, err error) {
+	bytes, err := exec.Command("docker-wsl", "status").Output()
+
+	return string(bytes), err
+}
+
+func handleStatusSubMenu(subMenuMap *map[string]*systray.MenuItem, statusMenu *systray.MenuItem) {
+	status, err := getStatus()
+
+	if err != nil {
+		log.Println(err)
+		statusMenu.SetTitle("Stopped")
+		return
+	}
+
+	if !strings.Contains(status, "supervisor.sock") && !strings.Contains(status, "error") {
+		statusMenu.SetTitle("Running")
+		if len(*subMenuMap) == 0 {
+			for _, line := range strings.Split(status, "\n") {
+				elements := strings.Fields(line)
+				if len(elements) > 0 {
+					item := statusMenu.AddSubMenuItem(getText(elements), "")
+					item.Disable()
+					(*subMenuMap)[elements[0]] = item
 				}
-			case <-mEnabled.ClickedCh:
-				mEnabled.SetTitle("Disabled")
-				mEnabled.Disable()
-			case <-subMenuBottom2.ClickedCh:
-				panic("panic button pressed")
-			case <-subMenuBottom.ClickedCh:
-				toggle()
-			case <-mReset.ClickedCh:
-				systray.ResetMenu()
-				addQuitItem()
-			case <-mToggle.ClickedCh:
-				toggle()
+			}
+		} else {
+			for _, line := range strings.Split(status, "\n") {
+				elements := strings.Fields(line)
+				if len(elements) > 0 {
+					(*subMenuMap)[elements[0]].SetTitle(getText(elements))
+				}
 			}
 		}
-	}()
+	} else {
+		statusMenu.SetTitle("Stopped")
+	}
+}
+
+func getText(elements []string) string {
+	return elements[0] + ": " + strings.ToLower(elements[1])
 }

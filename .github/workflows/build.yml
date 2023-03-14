@@ -24,7 +24,7 @@ jobs:
     - run: go build .
       working-directory: gui
 
-    - name: Sign the MSI Package (test)
+    - name: Sign the GUI Exe (test)
       run: ./msi/SignGuiExe.ps1
       continue-on-error: true
       env:
@@ -32,7 +32,7 @@ jobs:
         PFX_THUMBPRINT: ${{ secrets.PFX_THUMBPRINT }}
       if: startsWith(github.ref, 'refs/tags/') != true
 
-    - name: Sign the MSI Package (release)
+    - name: Sign the GUI Exe (release)
       run: ./msi/AzureSignGuiExe.ps1
       env:
         AZURE_SIGN_CLIENT_SECRET: ${{ secrets.AZURE_SIGN_CLIENT_SECRET }}

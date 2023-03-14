@@ -176,7 +176,6 @@
         <Shortcut Id="StartupTrayShortcut" Name="dockerinwsltray"
                   Description="DockerInWSL Startup TrayIcon"
                   Target="[#GUI.EXE]"
-                  Arguments=""
                   WorkingDirectory="INSTALLFOLDER" />
         <RemoveFile Id="RemoveStartupTrayShortcut" Name="dockerinwsltray" On="uninstall" />
         <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="startuptray" Type="integer" Value="1" KeyPath="yes"/>   

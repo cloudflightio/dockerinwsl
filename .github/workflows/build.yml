@@ -11,6 +11,24 @@ on:
     branches: [ master ]
 
 jobs:
+  build-gui:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-go@v3
+      with:
+        go-version: '^1.19.6'
+    
+    - run: cd gui && go build .
+
+    - name: Upload Archive (tar)
+      uses: actions/upload-artifact@v3
+      with:
+        name: gui-windows
+        path: gui/gui.exe
+
   build-container:
     runs-on: ubuntu-latest
 
@@ -28,7 +46,9 @@ jobs:
   
   build-msi:
     runs-on: windows-latest
-    needs: build-container
+    needs: 
+      - build-container
+      - build-gui
 
     steps:
     - uses: actions/checkout@v3
@@ -42,8 +62,6 @@ jobs:
 
     - name: Download artifacts
       uses: actions/download-artifact@v3
-      with:
-        name: linux-container-image
 
     - name: Build the MSI Package
       run: ./msi/BuildInstaller.ps1

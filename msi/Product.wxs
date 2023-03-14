@@ -79,7 +79,7 @@
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="InstallerScriptsComponents" />
       <ComponentGroupRef Id="ImageComponents" />
-      <ComponentRef Id="ApplicationShortcutStartupComponent" />
+      <ComponentGroupRef Id="StartupComponents" />
       <ComponentRef Id="ApplicationShortcutComponent" />
     </Feature>
   </Product>

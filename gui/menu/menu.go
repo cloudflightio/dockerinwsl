@@ -16,6 +16,20 @@ import (
 
 const CMD_PATH = "C:\\Windows\\system32\\cmd.exe"
 
+type dockerStatus struct {
+	isDockerReachable  bool
+	lastCheckTimestamp int64
+}
+
+type GlobalState int
+
+const (
+	Default GlobalState = iota
+	Ok
+	Warn
+	Error
+)
+
 func StartMenu() {
 	onExit := func() {
 		now := time.Now()
@@ -25,13 +39,28 @@ func StartMenu() {
 	systray.Run(onReady, onExit)
 }
 
+func setGlobalState(s GlobalState) {
+	ic := icon.DataDefault
+	switch s {
+	case Ok:
+		ic = icon.DataOk
+	case Warn:
+		ic = icon.DataWarn
+	case Error:
+		ic = icon.DataErr
+	default:
+		ic = icon.DataDefault
+	}
+	systray.SetTemplateIcon(ic, ic)
+}
+
 func onReady() {
-	systray.SetTemplateIcon(icon.Data, icon.Data)
+	systray.SetTemplateIcon(icon.DataDefault, icon.DataDefault)
 	systray.SetTitle("DockerInWsl")
 	systray.SetTooltip("DockerInWsl")
 
-	status := systray.AddMenuItem("Docker status", "Docker status")
-	check := status.AddSubMenuItem("Check components", "")
+	statusMenu := systray.AddMenuItem("Docker status", "Docker status")
+	check := statusMenu.AddSubMenuItem("Check components", "")
 	systray.AddSeparator()
 
 	enter := systray.AddMenuItem("Enter", "Enter")
@@ -49,7 +78,12 @@ func onReady() {
 	systray.AddSeparator()
 	quit := systray.AddMenuItem("Quit", "Quit")
 
-	go startCheckDockerStatusLoop(status)
+	status := dockerStatus{
+		isDockerReachable:  false,
+		lastCheckTimestamp: 0,
+	}
+	go startCheckDockerStatusLoop(&status)
+	go startStatusUpdateLoop(statusMenu, &status)
 	statusSubMenuItemMap := make(map[string]*systray.MenuItem)
 
 	for {
@@ -83,7 +117,7 @@ func onReady() {
 		case <-backup.ClickedCh:
 			cmd = exec.Command("docker-wsl", "backup")
 		case <-check.ClickedCh:
-			checkSupervisorStatus(&statusSubMenuItemMap, status)
+			checkSupervisorStatus(&statusSubMenuItemMap, statusMenu)
 		}
 
 		if cmd != nil {
@@ -94,37 +128,58 @@ func onReady() {
 	}
 }
 
-func startCheckDockerStatusLoop(statusMenu *systray.MenuItem) {
+func startCheckDockerStatusLoop(status *dockerStatus) {
 	ctx := context.Background()
 	ticker := time.NewTicker(10 * time.Second)
 
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 
 	if err != nil {
-		statusMenu.SetTitle("Docker is stopped")
 		log.Println("Error:", err)
 	}
 
 	defer cli.Close()
 
 	if cli != nil {
-		statusMenu.SetTitle(pingDockerAndGetStatus(ctx, cli))
-
 		for range ticker.C {
-			statusMenu.SetTitle(pingDockerAndGetStatus(ctx, cli))
+			currentTimestamp := time.Now().Unix()
+			status.isDockerReachable = checkIfDockerIsReachable(ctx, cli)
+			status.lastCheckTimestamp = currentTimestamp
 		}
 	}
 }
 
-func pingDockerAndGetStatus(ctx context.Context, cli *client.Client) string {
-	_, err := cli.Ping(ctx)
+func startStatusUpdateLoop(statusMenu *systray.MenuItem, status *dockerStatus) {
+	ticker := time.NewTicker(1 * time.Second)
 
-	if err != nil {
-		log.Println("Error:", err)
+	for range ticker.C {
+		currentTimestamp := time.Now().Unix()
+		statusMenu.SetTitle(getStatusMenuTitle(status))
+		if !status.isDockerReachable {
+			setGlobalState(Error)
+		} else if status.lastCheckTimestamp+30 < currentTimestamp {
+			setGlobalState(Warn)
+		} else {
+			setGlobalState(Ok)
+		}
+	}
+}
+
+func getStatusMenuTitle(status *dockerStatus) string {
+	if !status.isDockerReachable {
 		return "Docker is stopped"
 	}
 
 	return "Docker is running"
+}
+
+func checkIfDockerIsReachable(ctx context.Context, cli *client.Client) bool {
+	_, err := cli.Ping(ctx)
+	if err != nil {
+		log.Println("Error:", err)
+		return false
+	}
+	return true
 }
 
 func checkSupervisorStatus(statusSubMenuItemMap *map[string]*systray.MenuItem, statusMenu *systray.MenuItem) {
@@ -152,6 +207,8 @@ func checkSupervisorStatus(statusSubMenuItemMap *map[string]*systray.MenuItem, s
 				}
 			}
 		}
+	} else {
+		log.Println(status)
 	}
 }
 

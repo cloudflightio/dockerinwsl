@@ -3,14 +3,18 @@ package menu
 import (
 	"context"
 	"fmt"
-	"fyne.io/systray"
-	"github.com/cloudflightio/dockerinwsl/gui/icon"
-	"github.com/docker/docker/client"
 	"log"
 	"os/exec"
 	"strings"
+	"syscall"
 	"time"
+
+	"fyne.io/systray"
+	"github.com/cloudflightio/dockerinwsl/gui/icon"
+	"github.com/docker/docker/client"
 )
+
+const CMD_PATH = "C:\\Windows\\system32\\cmd.exe"
 
 func StartMenu() {
 	onExit := func() {
@@ -55,13 +59,17 @@ func onReady() {
 		case <-quit.ClickedCh:
 			systray.Quit()
 		case <-enter.ClickedCh:
-			cmd = exec.Command("cmd", "/C", "start", "docker-wsl enter")
+			cmd = exec.Command("cmd", "/C", "start", "docker-wsl", "enter")
+			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 		case <-enterRoot.ClickedCh:
 			cmd = exec.Command("cmd", "/C", "start", "docker-wsl", "enter-root")
+			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 		case <-showLogs.ClickedCh:
 			cmd = exec.Command("docker-wsl", "show-logs")
+			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 		case <-showConfig.ClickedCh:
 			cmd = exec.Command("docker-wsl", "show-config")
+			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 		case <-restart.ClickedCh:
 			cmd = exec.Command("docker-wsl", "restart")
 		case <-restartAll.ClickedCh:

@@ -11,6 +11,39 @@ on:
     branches: [ master ]
 
 jobs:
+  build-gui:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-go@v3
+      with:
+        go-version: '^1.19.6'
+    
+    - run: go build -ldflags -H=windowsgui .
+      working-directory: gui
+
+    - name: Sign the GUI Exe (test)
+      run: ./msi/SignGuiExe.ps1
+      continue-on-error: true
+      env:
+        PFX_PASSPHRASE: ${{ secrets.PFX_PASSPHRASE }}
+        PFX_THUMBPRINT: ${{ secrets.PFX_THUMBPRINT }}
+      if: startsWith(github.ref, 'refs/tags/') != true
+
+    - name: Sign the GUI Exe (release)
+      run: ./msi/AzureSignGuiExe.ps1
+      env:
+        AZURE_SIGN_CLIENT_SECRET: ${{ secrets.AZURE_SIGN_CLIENT_SECRET }}
+      if: startsWith(github.ref, 'refs/tags/')
+
+    - name: Upload Archive (tar)
+      uses: actions/upload-artifact@v3
+      with:
+        name: gui-windows
+        path: gui/gui.exe
+
   build-container:
     runs-on: ubuntu-latest
 
@@ -28,7 +61,9 @@ jobs:
   
   build-msi:
     runs-on: windows-latest
-    needs: build-container
+    needs: 
+      - build-container
+      - build-gui
 
     steps:
     - uses: actions/checkout@v3
@@ -40,10 +75,15 @@ jobs:
         WIX_PATH: ${{ env.wix }}
       run: echo "$env:WIX_PATH\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-    - name: Download artifacts
+    - name: Download artifact (linux container image)
       uses: actions/download-artifact@v3
       with:
         name: linux-container-image
+    
+    - name: Download artifact (gui client)
+      uses: actions/download-artifact@v3
+      with:
+        name: gui-windows
 
     - name: Build the MSI Package
       run: ./msi/BuildInstaller.ps1

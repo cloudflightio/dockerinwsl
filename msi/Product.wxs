@@ -79,7 +79,7 @@
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="InstallerScriptsComponents" />
       <ComponentGroupRef Id="ImageComponents" />
-      <ComponentRef Id="ApplicationShortcutStartupComponent" />
+      <ComponentGroupRef Id="StartupComponents" />
       <ComponentRef Id="ApplicationShortcutComponent" />
     </Feature>
   </Product>
@@ -156,16 +156,31 @@
         <File Id="IMAGEDATA.TAR" Source="../image-data.tar"></File>
         <RemoveFolder Id="RemoveInstallFolderImageDataComponent" On='uninstall' />
       </Component>
+      <Component Id="GuiExeComponent" Guid="{A0038AE6-437D-403A-92BD-9F624BE96858}" Win64="yes">
+        <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="gui" Type="integer" Value="1" KeyPath="yes"/>
+        <File Id="GUI.EXE" Source="../gui.exe"></File>
+        <RemoveFolder Id="RemoveInstallFolderGuiExeComponent" On='uninstall' />
+      </Component>
     </ComponentGroup>
-    <Component Id="ApplicationShortcutStartupComponent" Guid="*" Win64="yes" Directory="StartupFolder">
-      <Shortcut Id="StartupFolderShortcut" Name="dockerinwsl"
-                Description="DockerInWSL Startup"
-                Target="[#DOCKERWSL.BAT]"
-                Arguments="start"
-                WorkingDirectory="INSTALLFOLDER" />
-      <RemoveFile Id="RemoveStartupFolderShortcut" Name="dockerinwsl" On="uninstall" />
-      <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="startup" Type="integer" Value="1" KeyPath="yes"/>   
-    </Component>
+    <ComponentGroup Id="StartupComponents" Directory="StartupFolder">
+      <Component Id="ApplicationShortcutStartupComponent" Guid="*" Win64="yes" >
+        <Shortcut Id="StartupFolderShortcut" Name="dockerinwsl"
+                  Description="DockerInWSL Startup"
+                  Target="[#DOCKERWSL.BAT]"
+                  Arguments="start"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RemoveFile Id="RemoveStartupFolderShortcut" Name="dockerinwsl" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="startup" Type="integer" Value="1" KeyPath="yes"/>   
+      </Component>
+      <Component Id="ApplicationTrayStartupComponent" Guid="*" Win64="yes" >
+        <Shortcut Id="StartupTrayShortcut" Name="dockerinwsltray"
+                  Description="DockerInWSL Startup TrayIcon"
+                  Target="[#GUI.EXE]"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RemoveFile Id="RemoveStartupTrayShortcut" Name="dockerinwsltray" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="startuptray" Type="integer" Value="1" KeyPath="yes"/>   
+      </Component>
+    </ComponentGroup>
   </Fragment>
 
   <Fragment>

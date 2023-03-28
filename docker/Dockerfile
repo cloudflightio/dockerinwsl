@@ -1,10 +1,12 @@
-FROM ubuntu:22.04
+FROM docker.io/library/ubuntu:22.04
 LABEL maintainer="Cloudflight GmbH"
 
 ARG WSL_VPNKIT_VERSION=0.3.8
 
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \ 
+    systemd \
+    systemd-sysv \
     socat \
     iputils-ping \
     dnsutils \

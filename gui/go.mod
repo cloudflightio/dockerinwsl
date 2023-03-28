@@ -9,10 +9,11 @@ require (
 
 require (
 	github.com/Microsoft/go-winio v0.6.0 // indirect
+	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
-	github.com/godbus/dbus/v5 v5.0.4 // indirect
+	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/moby/term v0.0.0-20221205130635-1aeaba878587 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect

@@ -7,6 +7,8 @@ RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \ 
     systemd \
     systemd-sysv \
+    dbus \
+    rsyslog \
     socat \
     iputils-ping \
     dnsutils \
@@ -15,7 +17,6 @@ RUN apt-get update \
     gnupg \
     lsb-release \
     iproute2 \
-    supervisor \
     dnsmasq \
     chrony \
     jq \
@@ -55,9 +56,16 @@ RUN mkdir -p "$HOME/.docker/cli-plugins/" \
  && chown root:root /usr/local/bin/* \
  && update-alternatives --set iptables /usr/sbin/iptables-legacy \
  && update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy \
- && sed -i 's/RESOLV_CONF=.*/RESOLV_CONF="\/etc\/resolv.conf.udhcpc"/g' /etc/udhcpc/default.script
+ && sed -i 's/RESOLV_CONF=.*/RESOLV_CONF="\/etc\/resolv.conf.udhcpc"/g' /etc/udhcpc/default.script \
+ && useradd -m -u 1000 -g docker -s /bin/bash docker \
+ && systemctl enable \
+      docker-data-mount \
+      docker \
+      startup \
+      vpnkit \
+      chrony \
+      dnsmasq
 
-RUN useradd -m -u 1000 -g docker -s /bin/bash docker
 USER docker
 
 VOLUME ["/var/lib/docker"]

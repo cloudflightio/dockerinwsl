@@ -1,0 +1,10 @@
+[Unit]
+Description=VPNKit enabled access from containers to the windows-user networking. This makes connections from containers to windows userland vpn-connections possible.
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/wsl-vpnkit
+PIDFile=/run/wsl-vpnkit.pid
+
+[Install]
+WantedBy=multi-user.target

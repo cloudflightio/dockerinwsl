@@ -1,0 +1,10 @@
+[Unit]
+Description=Docker data-dir mount service. Use to persist containers and images between updates.
+
+[Service]
+Type=oneshot
+Environment=ONESHOT=1
+ExecStart=/usr/local/bin/wsl-mount
+
+[Install]
+WantedBy=multi-user.target

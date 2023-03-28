@@ -1,0 +1,10 @@
+[Unit]
+Description=Docker data-dir mount service. Use to persist containers and images between updates.
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/startup
+PIDFile=/run/startup.pid
+
+[Install]
+WantedBy=multi-user.target

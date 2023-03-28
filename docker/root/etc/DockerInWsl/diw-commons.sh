@@ -74,6 +74,7 @@ install_config() {
         echo "$(stat -c %y "$src") -nt $(stat -c %y "$tmp_file")"
         if [ "${src: -5}" == ".json" ]; then
             log "remote config updated => merging defaults"
+            if ! jq empty < "$src"; then return; fi
             jq --argjson existing "$(<"$src")" ' . * $existing' "$default" > "$tmp_file"
             cp -f "$tmp_file" "$src"
             sleep 1

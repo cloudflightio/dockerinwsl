@@ -27,29 +27,14 @@ function Get-Version {
 
 function Start-Docker () {
     "$(Get-TimeStamp) Starting ..." | Out-Host
-    wsl -d $DISTRONAME -u root /bin/bash -c "[ -f $SUPERVISOR_PID ] && cat $SUPERVISOR_PID | xargs ps -p > /dev/null"
-    if ($LASTEXITCODE -ne 0) {
-        wsl -d $DISTRONAME -u root /bin/bash -c "umask 022; supervisord -c /etc/supervisor/supervisord.conf"
-        "$(Get-TimeStamp) ... started!" | Out-Host
-    }
-    else {
-        "$(Get-TimeStamp) docker seems to be running already. $SUPERVISOR_PID found" | Out-Host
-    }
+    wsl -d $DISTRONAME -u root /bin/bash -c "echo ..."
+    "$(Get-TimeStamp) ... started!" | Out-Host
 }
  
 function Stop-Docker () {
     "$(Get-TimeStamp) Stopping ..." | Out-Host
-    wsl -d $DISTRONAME -u root /bin/bash -c "[ -f $SUPERVISOR_PID ] && cat $SUPERVISOR_PID | xargs ps -p > /dev/null"
-    if ($LASTEXITCODE -eq 0) {
-        wsl -d $DISTRONAME -u root /bin/bash -c "supervisorctl stop all; kill `$(cat $SUPERVISOR_PID)"
-        "$(Get-TimeStamp) ... stopped!" | Out-Host
-    }
-    else {
-        "$(Get-TimeStamp) docker seems to be stopped already. $SUPERVISOR_PID not found" | Out-Host
-    }
-    "$(Get-TimeStamp) Shutting down WSL ..." | Out-Host
-    wsl -t $DISTRONAME
-    "$(Get-TimeStamp) shutdown completed!" | Out-Host
+    wsl --terminate $DISTRONAME
+    "$(Get-TimeStamp) ... stopped!" | Out-Host
 } 
 
 function Restart-Docker () {
@@ -80,7 +65,8 @@ function Enter-DockerMachineAsRoot {
 }
 
 function Get-DockerMachineStatus {
-    wsl -d $DISTRONAME -u root supervisorctl status
+    wsl -d $DISTRONAME -u root systemctl list-units -t service --no-legend --no-pager --all `
+    "{chrony.service,containerd.service,dbus.service,dnsmasq.service,docker.service,rsyslog.service,vpnkit.service,startup.service,docker-data-mount.service}"
 }
 
 function Get-CalledName {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
-	"strings"
+	"reflect"
 	"syscall"
 	"time"
 
@@ -18,6 +18,15 @@ const CMD_PATH = "C:\\Windows\\system32\\cmd.exe"
 
 type dockerStatus struct {
 	isDockerReachable  bool
+	lastCheckTimestamp int64
+}
+
+type componentsStatus struct {
+	DockerStatus       string `serviceName:"docker.service" displayName:"docker"`
+	VpnkitStatus       string `serviceName:"vpnkit.service" displayName:"vpnkit"`
+	ChronyStatus       string `serviceName:"chrony.service" displayName:"chrony"`
+	ContainerdStatus   string `serviceName:"containerd.service" displayName:"containerd"`
+	DnsmasqStatus      string `serviceName:"dnsmasq.service" displayName:"dnsmasq"`
 	lastCheckTimestamp int64
 }
 
@@ -40,7 +49,7 @@ func StartMenu() {
 }
 
 func setGlobalState(s GlobalState) {
-	ic := icon.DataDefault
+	var ic []byte
 	switch s {
 	case Ok:
 		ic = icon.DataOk
@@ -60,7 +69,7 @@ func onReady() {
 	systray.SetTooltip("DockerInWsl")
 
 	statusMenu := systray.AddMenuItem("Docker status", "Docker status")
-	check := statusMenu.AddSubMenuItem("Check components", "")
+	statusSubMenuItemMap := make(map[string]*systray.MenuItem)
 	systray.AddSeparator()
 
 	enter := systray.AddMenuItem("Enter", "Enter")
@@ -78,13 +87,8 @@ func onReady() {
 	systray.AddSeparator()
 	quit := systray.AddMenuItem("Quit", "Quit")
 
-	status := dockerStatus{
-		isDockerReachable:  false,
-		lastCheckTimestamp: 0,
-	}
-	go startCheckDockerStatusLoop(&status)
-	go startStatusUpdateLoop(statusMenu, &status)
-	statusSubMenuItemMap := make(map[string]*systray.MenuItem)
+	dockerStatusUpdate := startCheckDockerStatusLoop()
+	componentsStatusUpdate := startCheckComponentsStatusLoop()
 
 	for {
 		var cmd *exec.Cmd
@@ -116,8 +120,10 @@ func onReady() {
 			cmd = exec.Command("docker-wsl", "restore")
 		case <-backup.ClickedCh:
 			cmd = exec.Command("docker-wsl", "backup")
-		case <-check.ClickedCh:
-			checkSupervisorStatus(&statusSubMenuItemMap, statusMenu)
+		case dockerStatusReport := <-dockerStatusUpdate:
+			updateDockerStatus(statusMenu, &dockerStatusReport)
+		case componentsStatusReport := <-componentsStatusUpdate:
+			updateComponentsStatus(statusMenu, &statusSubMenuItemMap, &componentsStatusReport)
 		}
 
 		if cmd != nil {
@@ -128,7 +134,8 @@ func onReady() {
 	}
 }
 
-func startCheckDockerStatusLoop(status *dockerStatus) {
+func startCheckDockerStatusLoop() chan dockerStatus {
+	dockerStatusUpdate := make(chan dockerStatus)
 	ctx := context.Background()
 	ticker := time.NewTicker(10 * time.Second)
 
@@ -141,36 +148,113 @@ func startCheckDockerStatusLoop(status *dockerStatus) {
 	defer cli.Close()
 
 	if cli != nil {
-		for range ticker.C {
-			currentTimestamp := time.Now().Unix()
-			status.isDockerReachable = checkIfDockerIsReachable(ctx, cli)
-			status.lastCheckTimestamp = currentTimestamp
-		}
+		go func() {
+			for range ticker.C {
+				dockerStatusUpdate <- dockerStatus{
+					isDockerReachable:  checkIfDockerIsReachable(ctx, cli),
+					lastCheckTimestamp: time.Now().Unix(),
+				}
+			}
+		}()
+	}
+
+	return dockerStatusUpdate
+}
+
+func updateDockerStatus(statusMenu *systray.MenuItem, status *dockerStatus) {
+	currentTimestamp := time.Now().Unix()
+	statusMenu.SetTitle(getStatusMenuTitle(status))
+	if !status.isDockerReachable {
+		setGlobalState(Error)
+	} else if status.lastCheckTimestamp+30 < currentTimestamp {
+		setGlobalState(Warn)
+	} else {
+		setGlobalState(Ok)
 	}
 }
 
-func startStatusUpdateLoop(statusMenu *systray.MenuItem, status *dockerStatus) {
-	ticker := time.NewTicker(1 * time.Second)
+func startCheckComponentsStatusLoop() chan componentsStatus {
+	componentsStatusUpdate := make(chan componentsStatus)
+	t := reflect.TypeOf(componentsStatus{})
+	unitFieldNames := make(map[string]string, t.NumField())
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
 
-	for range ticker.C {
-		currentTimestamp := time.Now().Unix()
-		statusMenu.SetTitle(getStatusMenuTitle(status))
-		if !status.isDockerReachable {
-			setGlobalState(Error)
-		} else if status.lastCheckTimestamp+30 < currentTimestamp {
-			setGlobalState(Warn)
+		tag := field.Tag.Get("serviceName")
+		if tag == "" || tag == "-" {
+			continue
+		}
+		unitFieldNames[tag] = field.Name
+	}
+	unitNames := make([]string, 0, len(unitFieldNames))
+	for k := range unitFieldNames {
+		unitNames = append(unitNames, k)
+	}
+
+	ctx := context.TODO()
+
+	conn, err := NewConnectionContext(ctx)
+	if err != nil {
+		log.Println(err)
+	}
+
+	ticker := time.NewTicker(10 * time.Second)
+
+	go func() {
+		for range ticker.C {
+			unitStatus, err := getUnitStatus(ctx, conn, unitNames)
+			if err != nil {
+				log.Println(err)
+			}
+			status := componentsStatus{
+				lastCheckTimestamp: time.Now().Unix(),
+			}
+			v := reflect.ValueOf(&status).Elem()
+			for _, s := range unitStatus {
+				field := v.FieldByName(unitFieldNames[s.Name])
+				field.SetString(s.ActiveState)
+			}
+			status.lastCheckTimestamp = time.Now().Unix()
+
+			componentsStatusUpdate <- status
+		}
+	}()
+
+	return componentsStatusUpdate
+}
+
+func updateComponentsStatus(statusMenu *systray.MenuItem, statusSubMenuItemMap *map[string]*systray.MenuItem, status *componentsStatus) {
+	t := reflect.TypeOf(status).Elem()
+	v := reflect.ValueOf(status).Elem()
+
+	firstRun := len(*statusSubMenuItemMap) == 0
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		serviceDisplayName := field.Tag.Get("displayName")
+		if serviceDisplayName == "" || serviceDisplayName == "-" {
+			continue
+		}
+		serviceStatus := v.Field(i).String()
+
+		text := fmt.Sprintf("%s is %s", serviceDisplayName, serviceStatus)
+
+		if firstRun {
+			item := statusMenu.AddSubMenuItem(text, "")
+			item.Disable()
+			(*statusSubMenuItemMap)[field.Name] = item
 		} else {
-			setGlobalState(Ok)
+			(*statusSubMenuItemMap)[field.Name].SetTitle(text)
 		}
 	}
 }
 
 func getStatusMenuTitle(status *dockerStatus) string {
 	if !status.isDockerReachable {
-		return "Docker is stopped"
+		return "Docker is unreachable!"
 	}
 
-	return "Docker is running"
+	return "Docker is reachable"
 }
 
 func checkIfDockerIsReachable(ctx context.Context, cli *client.Client) bool {
@@ -180,44 +264,4 @@ func checkIfDockerIsReachable(ctx context.Context, cli *client.Client) bool {
 		return false
 	}
 	return true
-}
-
-func checkSupervisorStatus(statusSubMenuItemMap *map[string]*systray.MenuItem, statusMenu *systray.MenuItem) {
-	status, err := getStatus()
-
-	if err != nil {
-		log.Println(err)
-	}
-
-	if !strings.Contains(status, "supervisor.sock") && !strings.Contains(status, "error") {
-		if len(*statusSubMenuItemMap) == 0 {
-			for _, line := range strings.Split(status, "\n") {
-				elements := strings.Fields(line)
-				if len(elements) > 0 {
-					item := statusMenu.AddSubMenuItem(getText(elements), "")
-					item.Disable()
-					(*statusSubMenuItemMap)[elements[0]] = item
-				}
-			}
-		} else {
-			for _, line := range strings.Split(status, "\n") {
-				elements := strings.Fields(line)
-				if len(elements) > 0 {
-					(*statusSubMenuItemMap)[elements[0]].SetTitle(getText(elements))
-				}
-			}
-		}
-	} else {
-		log.Println(status)
-	}
-}
-
-func getStatus() (output string, err error) {
-	bytes, err := exec.Command("docker-wsl", "status").Output()
-
-	return string(bytes), err
-}
-
-func getText(elements []string) string {
-	return elements[0] + ": " + strings.ToLower(elements[1])
 }

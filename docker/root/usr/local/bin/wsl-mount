@@ -38,10 +38,6 @@ _chk_mnt_winuserdirstuff() {
   [ "$(type -t "_diw_plugin${FUNCNAME[0]}_posthook")" = "function" ] && _diw_plugin${FUNCNAME[0]}_posthook || true
 }
 
-while true; do
-  _chk_mnt_varlibdocker
-  _chk_mnt_winuserdirstuff
-  _diw_plugin_mainloop
-  [ -n "$ONESHOT" ] && exit 0
-  sleep 30
-done
+_chk_mnt_varlibdocker
+_chk_mnt_winuserdirstuff
+_diw_plugin_mainloop

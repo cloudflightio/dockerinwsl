@@ -12,9 +12,9 @@ _chk_mnt_varlibdocker() {
   log "check mountpoint ${DIW_VARLIBDOCKER_DST}"
   if ! mountpoint "${DIW_VARLIBDOCKER_DST}" >/dev/null 2>&1 ; then
     log "mounting \"data:${DIW_VARLIBDOCKER_DST}\" => \"${DIW_VARLIBDOCKER_SRC}\" ..."
-    wsl.exe -d dockerinwsl_data -u root mount --bind "${DIW_VARLIBDOCKER_DST}" "${DIW_VARLIBDOCKER_SRC}" || exit 1
+    exec_wsl_data_root mount --bind "${DIW_VARLIBDOCKER_DST}" "${DIW_VARLIBDOCKER_SRC}" || exit 1
     log "mounting \"${DIW_VARLIBDOCKER_SRC}\" \"${DIW_VARLIBDOCKER_DST}\" ..."
-    wsl.exe -d clf_dockerinwsl -u root mount --bind "${DIW_VARLIBDOCKER_SRC}" "${DIW_VARLIBDOCKER_DST}" || exit 1
+    exec_wsl_root mount --bind "${DIW_VARLIBDOCKER_SRC}" "${DIW_VARLIBDOCKER_DST}" || exit 1
     log "... done mounting"
   fi
   [ "$(type -t "_diw_plugin${FUNCNAME[0]}_posthook")" = "function" ] && _diw_plugin${FUNCNAME[0]}_posthook || true
@@ -31,7 +31,7 @@ _chk_mnt_winuserdirstuff() {
     log "check mountpoint ${DSTDIR}"
     if ! mountpoint "${DSTDIR}" >/dev/null 2>&1 ; then
       log "mounting ${SRCDIR} => ${DSTDIR} ..."
-      wsl.exe -d clf_dockerinwsl -u root mount --bind "${SRCDIR}" "${DSTDIR}" || exit 1
+      exec_wsl_root mount --bind "${SRCDIR}" "${DSTDIR}" || exit 1
       log "... done mounting"
     fi
   done

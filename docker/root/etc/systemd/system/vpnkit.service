@@ -1,4 +1,6 @@
 [Unit]
+Requires=network.target
+After=network.target
 Description=VPNKit enabled access from containers to the windows-user networking. This makes connections from containers to windows userland vpn-connections possible.
 
 [Service]

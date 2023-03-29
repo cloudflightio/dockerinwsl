@@ -109,3 +109,23 @@ install_file () {
         exit 1
     fi
 }
+
+_exec_wsl () {
+    /mnt/c/Windows/system32/wsl.exe "$@"
+}
+
+exec_wsl () {
+    _exec_wsl -d clf_dockerinwsl "$@"
+}
+
+exec_wsl_root () {
+    exec_wsl -u root "$@"
+}
+
+exec_wsl_data () {
+    _exec_wsl -d dockerinwsl_data "$@"
+}
+
+exec_wsl_data_root () {
+    exec_wsl_data -u root "$@"
+}

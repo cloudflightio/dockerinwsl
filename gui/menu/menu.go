@@ -27,6 +27,7 @@ type componentsStatus struct {
 	ChronyStatus       string `serviceName:"chrony.service" displayName:"chrony"`
 	ContainerdStatus   string `serviceName:"containerd.service" displayName:"containerd"`
 	DnsmasqStatus      string `serviceName:"dnsmasq.service" displayName:"dnsmasq"`
+	CheckStatus        string `serviceName:"check.service" displayName:"check"`
 	lastCheckTimestamp int64
 }
 

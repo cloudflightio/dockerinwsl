@@ -1,0 +1,11 @@
+[Unit]
+Description=Docker data-dir mount service. Use to persist containers and images between updates.
+Requires=network.target
+After=dnsmasq.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/wsl-check
+
+[Install]
+WantedBy=multi-user.target

@@ -3,49 +3,23 @@
 # Copyright © 2021 Keiichi Shimamura (@sakai135)
 # Copyright @ 2022 Cloudflight GmbH (@cloudflightio)
 
-# Permission is hereby granted, free of charge, to any person obtaining a copy of 
-# this software and associated documentation files (the “Software”), to deal in the 
-# Software without restriction, including without limitation the rights to use, copy, 
-# modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, 
-# and to permit persons to whom the Software is furnished to do so, subject to the 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the “Software”), to deal in the
+# Software without restriction, including without limitation the rights to use, copy,
+# modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+# and to permit persons to whom the Software is furnished to do so, subject to the
 # following conditions:
-# The above copyright notice and this permission notice shall be included in all 
+# The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
 
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS 
-# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE 
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 # USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 set -eo pipefail
-
-get_interface_ip () {
-    ip -o -f inet addr show "$1" | awk '/scope global/ {print $4}' | head -n1 | cut -d'/' -f1
-}
-
-cidr_to_netmask() {
-    value="$(( 0xffffffff ^ (1 << (32 - $1)) - 1 ))"
-    echo "$(( (value >> 24) & 0xff )).$(( (value >> 16) & 0xff )).$(( (value >> 8) & 0xff )).$(( value & 0xff ))"
-}
-
-get_interface_cidr () {
-    ip -o -f inet addr show "$1" | awk '/scope global/ {print $4}' | head -n1 | cut -d'/' -f2
-}
-
-get_interface_subnet () {
-    cidr_to_netmask "$(get_interface_cidr "$1")"
-}
-
-get_interface_gateway_ip () {
-    interface_ip=$(get_interface_ip "$1")
-    interface_sn=$(get_interface_subnet "$1")
-    IFS=. read -r i1 i2 i3 i4 <<< "$interface_ip"
-    IFS=. read -r m1 m2 m3 m4 <<< "$interface_sn"
-    echo "$i4 $m4" > /dev/null
-    printf "%d.%d.%d.1\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))"
-}
 
 # shellcheck source=../../../etc/DockerInWsl/diw-commons.sh
 . /etc/DockerInWsl/diw-commons.sh
@@ -77,8 +51,6 @@ VPNKIT_GATEWAY_IP=${VPNKIT_GATEWAY_IP:-$DEFAULT_VPNKIT_GATEWAY_IP}
 VPNKIT_HOST_IP=${VPNKIT_HOST_IP:-$DEFAULT_VPNKIT_HOST_IP}
 VPNKIT_LOWEST_IP=${VPNKIT_LOWEST_IP:-$DEFAULT_VPNKIT_LOWEST_IP}
 VPNKIT_DEBUG=${VPNKIT_DEBUG:-$DEFAULT_VPNKIT_DEBUG}
-CHECK_DNS=${CHECK_DNS:-$DEFAULT_CHECK_DNS}
-CHECK_HOST=${CHECK_HOST:-$DEFAULT_CHECK_HOST}
 DNS_IP=${DNS_IP:-$DEFAULT_DNS_IP}
 
 WSL2_GATEWAY_INTERFACE="eth0"
@@ -99,6 +71,7 @@ run () {
       -debug="$VPNKIT_DEBUG" &
     VM_PID=$!
     log "started gvproxy"
+    systemd-notify --status="gvproxy started"
 }
 
 tap_wait () {
@@ -119,6 +92,7 @@ tap_wait () {
     fi
     set -eo pipefail
     log "dhcp completed"
+    systemd-notify --status="dhcp completed"
 }
 
 ipconfig () {
@@ -142,42 +116,7 @@ ipconfig () {
     echo "iptables cleanup ..."
     iptables-save | awk 'substr($0,1,1)!="-" || !x[$0]++' | iptables-restore
     echo "iptables cleanup done"
-}
-
-check_ping () {
-    ping "-$1" -c 1 "$3" >/dev/null && \
-        log "check: ✔️ ping success to IPv$1 $2 ($3)" || \
-        log "check: $([ $1 = '6' ] && echo '➖' || echo '❌') ping fail to IPv$1 $2 ($3)"
-}
-
-check_dns () {
-    TYPE=$([ "$1" = "4" ] && echo 'A' || echo 'AAAA')
-    nslookup "-type=$TYPE" "$2" "$3" >/dev/null && \
-        log "check: ✔️ nslookup success for $2 $TYPE using $3" || \
-        log "check: ❌ nslookup fail for $2 $TYPE using $3"
-}
-
-check_https () {
-    wget --spider -q $1 && \
-        log "check: ✔️ wget success for $1" || \
-        log "check: ❌ wget fail for $1"
-}
-
-check () {
-    check_ping 4 'WSL 2 gateway / Windows host' "$WSL2_GATEWAY_IP"
-    check_ping 4 'VPNKit Windows host' "$VPNKIT_HOST_IP"
-    check_ping 4 'VPNKit gateway' "$VPNKIT_GATEWAY_IP"
-    check_dns 4 "$CHECK_HOST" "$DNS_IP"
-    check_dns 4 "$CHECK_HOST" "$VPNKIT_GATEWAY_IP"
-    check_dns 4 "$CHECK_HOST" "$WSL2_GATEWAY_IP"
-    check_dns 4 "$CHECK_HOST" "$CHECK_DNS"
-    check_ping 4 'external host' "$CHECK_HOST"
-    check_dns 6 "$CHECK_HOST" "$DNS_IP"
-    check_dns 6 "$CHECK_HOST" "$VPNKIT_GATEWAY_IP"
-    check_dns 6 "$CHECK_HOST" "$WSL2_GATEWAY_IP"
-    check_dns 6 "$CHECK_HOST" "$CHECK_DNS"
-    check_ping 6 'external host' "$CHECK_HOST"
-    check_https "https://$CHECK_HOST"
+    systemd-notify --status="ipconfig completed"
 }
 
 cleanup () {
@@ -202,6 +141,7 @@ cleanup () {
 }
 
 close () {
+    systemd-notify --stopping
     cleanup
     log "stopped wsl-vpnkit"
     kill 0
@@ -216,7 +156,9 @@ cleanup
 run
 tap_wait
 ipconfig
-check
+
+systemd-notify --ready
+
 trap close exit
 trap exit int term
 wait

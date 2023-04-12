@@ -1,0 +1,74 @@
+#!/bin/bash
+
+set -eo pipefail
+
+# shellcheck source=../../../etc/DockerInWsl/diw-commons.sh
+. /etc/DockerInWsl/diw-commons.sh
+_diw_plugin_globalvars
+
+log "starting wsl-vpnkit"
+
+# Load defaults
+if [ -f "/etc/vpnkit/defaults.conf" ]; then
+  # shellcheck source=../../../etc/vpnkit/defaults.conf
+  . /etc/vpnkit/defaults.conf
+fi
+
+# set defaults if variable is not already set
+TAP_NAME=${TAP_NAME:-$DEFAULT_TAP_NAME}
+VPNKIT_SUBNET=${VPNKIT_SUBNET:-$DEFAULT_VPNKIT_SUBNET}
+VPNKIT_GATEWAY_IP=${VPNKIT_GATEWAY_IP:-$DEFAULT_VPNKIT_GATEWAY_IP}
+VPNKIT_HOST_IP=${VPNKIT_HOST_IP:-$DEFAULT_VPNKIT_HOST_IP}
+CHECK_DNS=${CHECK_DNS:-$DEFAULT_CHECK_DNS}
+CHECK_HOST=${CHECK_HOST:-$DEFAULT_CHECK_HOST}
+DNS_IP=${DNS_IP:-$DEFAULT_DNS_IP}
+
+WSL2_GATEWAY_INTERFACE="eth0"
+WSL2_GATEWAY_IP="$(get_interface_gateway_ip "$WSL2_GATEWAY_INTERFACE")"
+
+check_ping () {
+    ping "-$1" -c 1 "$3" >/dev/null && \
+        log "check: ✔️ ping success to IPv$1 $2 ($3)" || (\
+        [ "$1" = '6' ] && log "check: ➖ ping fail to IPv6 $2 ($3)") || (\
+        log_error "check: ➖' || echo '❌') ping fail to IPv4 $2 ($3)")
+}
+
+check_dns () {
+    TYPE=$([ "$1" = "4" ] && echo 'A' || echo 'AAAA')
+    nslookup "-type=$TYPE" "$2" "$3" >/dev/null && \
+        log "check: ✔️ nslookup success for $2 $TYPE using $3" || \
+        log_error "check: ❌ nslookup fail for $2 $TYPE using $3"
+}
+
+check_https () {
+    curl -sSf "$1" > /dev/null && \
+        log "check: ✔️ wget success for $1" || \
+        log_error "check: ❌ wget fail for $1"
+}
+
+check () {
+    check_ping 4 'WSL 2 gateway / Windows host' "$WSL2_GATEWAY_IP"
+    check_ping 4 'VPNKit Windows host' "$VPNKIT_HOST_IP"
+    check_ping 4 'VPNKit gateway' "$VPNKIT_GATEWAY_IP"       
+
+    check_dns 4 "$CHECK_HOST" "$DNS_IP"
+    check_dns 4 "$CHECK_HOST" "$VPNKIT_GATEWAY_IP"
+    check_dns 4 "$CHECK_HOST" "$WSL2_GATEWAY_IP"
+    check_dns 4 "$CHECK_HOST" "$CHECK_DNS"
+
+    check_dns 6 "$CHECK_HOST" "$DNS_IP"
+    check_dns 6 "$CHECK_HOST" "$VPNKIT_GATEWAY_IP"
+    check_dns 6 "$CHECK_HOST" "$WSL2_GATEWAY_IP"
+    check_dns 6 "$CHECK_HOST" "$CHECK_DNS"
+
+    check_dns 4 "host.docker.internal" "$DNS_IP"    
+    check_dns 4 "gateway.docker.internal" "$DNS_IP"  
+    check_dns 4 "host.internal" "$DNS_IP"            
+    check_dns 4 "wsl.internal" "$DNS_IP"
+
+    check_ping 4 'external host' "$CHECK_HOST"
+    check_https "https://$CHECK_HOST"
+}
+
+check
+die_on_errors

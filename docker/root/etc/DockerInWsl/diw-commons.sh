@@ -5,8 +5,20 @@ TMP_DIW_CALLEDUTIL="$0"
 DIW_CALLEDUTIL=$(cd "$(dirname -- "${TMP_DIW_CALLEDUTIL}")" >/dev/null; pwd -P)/$(basename -- "${TMP_DIW_CALLEDUTIL}")
 DIW_CALLEDUTIL_PLUGIN=$(printf "${DIW_CALLEDUTIL}" | sed 's/\//_/g')
 
+_errors=()
+
 log() {
   echo "[$(date -Ins)] $*"
+}
+
+log_error() {
+  msg="[$(date -Ins)] $*"
+  _errors+=("$msg")
+  >&2 echo "$msg"
+}
+
+die_on_errors() {
+  [ ${#_errors[@]} -eq 0 ] || exit 1
 }
 
 ### common vars
@@ -128,4 +140,30 @@ exec_wsl_data () {
 
 exec_wsl_data_root () {
     exec_wsl_data -u root "$@"
+}
+
+get_interface_ip () {
+    ip -o -f inet addr show "$1" | awk '/scope global/ {print $4}' | head -n1 | cut -d'/' -f1
+}
+
+cidr_to_netmask() {
+    value="$(( 0xffffffff ^ (1 << (32 - $1)) - 1 ))"
+    echo "$(( (value >> 24) & 0xff )).$(( (value >> 16) & 0xff )).$(( (value >> 8) & 0xff )).$(( value & 0xff ))"
+}
+
+get_interface_cidr () {
+    ip -o -f inet addr show "$1" | awk '/scope global/ {print $4}' | head -n1 | cut -d'/' -f2
+}
+
+get_interface_subnet () {
+    cidr_to_netmask "$(get_interface_cidr "$1")"
+}
+
+get_interface_gateway_ip () {
+    interface_ip=$(get_interface_ip "$1")
+    interface_sn=$(get_interface_subnet "$1")
+    IFS=. read -r i1 i2 i3 i4 <<< "$interface_ip"
+    IFS=. read -r m1 m2 m3 m4 <<< "$interface_sn"
+    echo "$i4 $m4" > /dev/null
+    printf "%d.%d.%d.1\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))"
 }

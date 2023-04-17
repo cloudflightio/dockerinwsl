@@ -4,7 +4,7 @@ This Project is meant to be a minimal alternative to [Docker Desktop](https://do
 
 ## How to install?
 
-The easiest way is to use our private WinGet Repository. See [cloudflightio/winget-pkgs](https://github.com/cloudflightio/winget-pkgs) for details. 
+The easiest way is to use our private [WinGet](https://www.microsoft.com/p/app-installer/9nblggh4nns1#activetab=pivot:overviewtab) Repository. See [cloudflightio/winget-pkgs](https://github.com/cloudflightio/winget-pkgs) for details. 
 
 > **Please verify that you have WSL2 installed and activated!** Verify that you got a 5.x Linux Kernel Version (preferable 5.10.x or later) installed. Run `wsl --status` to gather info about your WSL version. Try `wsl --install` and `wsl --update` to get the latest WSL install. See [WSL installation instructions](https://docs.microsoft.com/en-us/windows/wsl/install) for more information.
 

@@ -21,13 +21,13 @@ type dockerStatus struct {
 	lastCheckTimestamp int64
 }
 
-type componentsStatus struct {
-	DockerStatus       string `serviceName:"docker.service" displayName:"docker"`
-	VpnkitStatus       string `serviceName:"vpnkit.service" displayName:"vpnkit"`
-	ChronyStatus       string `serviceName:"chrony.service" displayName:"chrony"`
-	ContainerdStatus   string `serviceName:"containerd.service" displayName:"containerd"`
-	DnsmasqStatus      string `serviceName:"dnsmasq.service" displayName:"dnsmasq"`
-	CheckStatus        string `serviceName:"check.service" displayName:"check"`
+type systemStatus struct {
+	DockerStatus       ComponentStatus `serviceName:"docker.service" displayName:"docker"`
+	VpnkitStatus       ComponentStatus `serviceName:"vpnkit.service" displayName:"vpnkit"`
+	ChronyStatus       ComponentStatus `serviceName:"chrony.service" displayName:"chrony"`
+	ContainerdStatus   ComponentStatus `serviceName:"containerd.service" displayName:"containerd"`
+	DnsmasqStatus      ComponentStatus `serviceName:"dnsmasq.service" displayName:"dnsmasq"`
+	CheckStatus        ComponentStatus `serviceName:"check.service" displayName:"check"`
 	lastCheckTimestamp int64
 }
 
@@ -89,7 +89,7 @@ func onReady() {
 	quit := systray.AddMenuItem("Quit", "Quit")
 
 	dockerStatusUpdate := startCheckDockerStatusLoop()
-	componentsStatusUpdate := startCheckComponentsStatusLoop()
+	componentsStatusUpdate := startCheckSystemStatusLoop()
 
 	for {
 		var cmd *exec.Cmd
@@ -124,7 +124,7 @@ func onReady() {
 		case dockerStatusReport := <-dockerStatusUpdate:
 			updateDockerStatus(statusMenu, &dockerStatusReport)
 		case componentsStatusReport := <-componentsStatusUpdate:
-			updateComponentsStatus(statusMenu, &statusSubMenuItemMap, &componentsStatusReport)
+			updateSystemStatus(statusMenu, &statusSubMenuItemMap, &componentsStatusReport)
 		}
 
 		if cmd != nil {
@@ -174,9 +174,9 @@ func updateDockerStatus(statusMenu *systray.MenuItem, status *dockerStatus) {
 	}
 }
 
-func startCheckComponentsStatusLoop() chan componentsStatus {
-	componentsStatusUpdate := make(chan componentsStatus)
-	t := reflect.TypeOf(componentsStatus{})
+func startCheckSystemStatusLoop() chan systemStatus {
+	systemStatusUpdate := make(chan systemStatus)
+	t := reflect.TypeOf(systemStatus{})
 	unitFieldNames := make(map[string]string, t.NumField())
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
@@ -203,28 +203,35 @@ func startCheckComponentsStatusLoop() chan componentsStatus {
 
 	go func() {
 		for range ticker.C {
-			unitStatus, err := getUnitStatus(ctx, conn, unitNames)
+			if conn == nil || !conn.Connected() {
+				conn, err = NewConnectionContext(ctx)
+				if err != nil {
+					log.Println(err)
+				}
+			}
+			componentStatus, err := GetComponentStatus(ctx, conn, unitNames)
 			if err != nil {
 				log.Println(err)
 			}
-			status := componentsStatus{
+			status := systemStatus{
 				lastCheckTimestamp: time.Now().Unix(),
 			}
 			v := reflect.ValueOf(&status).Elem()
-			for _, s := range unitStatus {
+			for _, s := range componentStatus {
 				field := v.FieldByName(unitFieldNames[s.Name])
-				field.SetString(s.ActiveState)
+				v2 := reflect.ValueOf(&s).Elem()
+				field.Set(v2)
 			}
 			status.lastCheckTimestamp = time.Now().Unix()
 
-			componentsStatusUpdate <- status
+			systemStatusUpdate <- status
 		}
 	}()
 
-	return componentsStatusUpdate
+	return systemStatusUpdate
 }
 
-func updateComponentsStatus(statusMenu *systray.MenuItem, statusSubMenuItemMap *map[string]*systray.MenuItem, status *componentsStatus) {
+func updateSystemStatus(statusMenu *systray.MenuItem, statusSubMenuItemMap *map[string]*systray.MenuItem, status *systemStatus) {
 	t := reflect.TypeOf(status).Elem()
 	v := reflect.ValueOf(status).Elem()
 
@@ -236,9 +243,9 @@ func updateComponentsStatus(statusMenu *systray.MenuItem, statusSubMenuItemMap *
 		if serviceDisplayName == "" || serviceDisplayName == "-" {
 			continue
 		}
-		serviceStatus := v.Field(i).String()
+		serviceStatus := v.Field(i).Interface().(ComponentStatus)
 
-		text := fmt.Sprintf("%s is %s", serviceDisplayName, serviceStatus)
+		text := fmt.Sprintf("%s is %s", serviceDisplayName, serviceStatus.ActiveState)
 
 		if firstRun {
 			item := statusMenu.AddSubMenuItem(text, "")

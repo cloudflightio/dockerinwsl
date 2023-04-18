@@ -13,35 +13,42 @@ type SocketStatus struct {
 	LastCheckTimestamp int64
 }
 
-func checkIfDockerIsReachable(ctx context.Context, cli *client.Client) bool {
-	_, err := cli.Ping(ctx)
-	if err != nil {
-		log.Println("Error:", err)
-		return false
-	}
-	return true
-}
+var (
+	ctx          context.Context = context.Background()
+	dockerClient *client.Client
+)
 
-func (c WslContext) startCheckDockerStatusLoop() {
-	ctx := context.Background()
-	ticker := time.NewTicker(10 * time.Second)
-
+func init() {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 
 	if err != nil {
-		log.Print("Error:", err)
+		log.Fatal("Error:", err)
 	}
 
-	defer cli.Close()
+	dockerClient = cli
+}
 
-	if cli != nil {
-		go func() {
-			for ; true; <-ticker.C {
-				c.DockerStatus <- SocketStatus{
-					IsReachable:        checkIfDockerIsReachable(ctx, cli),
-					LastCheckTimestamp: time.Now().Unix(),
-				}
+func IsDockerReachable() (bool, error) {
+	_, err := dockerClient.Ping(ctx)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (c WslContext) startCheckDockerStatusLoop() {
+	ticker := time.NewTicker(10 * time.Second)
+
+	go func() {
+		for ; true; <-ticker.C {
+			reachable, err := IsDockerReachable()
+			if err != nil {
+				log.Println(err)
 			}
-		}()
-	}
+			c.DockerStatus <- SocketStatus{
+				IsReachable:        reachable,
+				LastCheckTimestamp: time.Now().Unix(),
+			}
+		}
+	}()
 }

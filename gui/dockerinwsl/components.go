@@ -44,6 +44,7 @@ func dbusAnonymousAuthConnection(ctx context.Context, createBus func(opts ...god
 
 type ComponentStatus struct {
 	Name               string
+	DisplayName        string
 	Description        string
 	LoadState          string
 	ActiveState        string
@@ -54,7 +55,7 @@ type ComponentStatus struct {
 	LastCheckTimestamp int64
 }
 
-func getComponentStatus(ctx context.Context, conn *dbus.Conn, unitNames []string) ([]ComponentStatus, error) {
+func GetComponentStatus(ctx context.Context, conn *dbus.Conn) ([]ComponentStatus, error) {
 	unitStatus, err := conn.ListUnitsByNamesContext(ctx, unitNames)
 	if err != nil {
 		return nil, err
@@ -62,6 +63,7 @@ func getComponentStatus(ctx context.Context, conn *dbus.Conn, unitNames []string
 	cs := make([]ComponentStatus, len(unitNames))
 	for i, unit := range unitStatus {
 		cs[i].Name = unit.Name
+		cs[i].DisplayName = unitDisplayNames[unit.Name]
 		cs[i].Description = unit.Description
 		cs[i].LoadState = unit.LoadState
 		cs[i].ActiveState = unit.ActiveState
@@ -92,27 +94,15 @@ func (cs *ComponentStatus) GetExitTime() time.Time {
 	return getTimeFromUInt64Timestamp(cs.ExitTimestamp)
 }
 
+func (cs *ComponentStatus) GetUptime() time.Duration {
+	return time.Since(cs.GetStartTime()).Truncate(time.Second)
+}
+
 func (c WslContext) startCheckSystemStatusLoop() {
 	ctx := context.TODO()
 	conn, err := newConnectionContext(ctx)
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	t := reflect.TypeOf(SystemStatus{})
-	unitFieldNames := make(map[string]string, t.NumField())
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-
-		tag := field.Tag.Get("serviceName")
-		if tag == "" || tag == "-" {
-			continue
-		}
-		unitFieldNames[tag] = field.Name
-	}
-	unitNames := make([]string, 0, len(unitFieldNames))
-	for k := range unitFieldNames {
-		unitNames = append(unitNames, k)
 	}
 
 	ticker := time.NewTicker(10 * time.Second)
@@ -125,7 +115,7 @@ func (c WslContext) startCheckSystemStatusLoop() {
 					log.Println(err)
 				}
 			}
-			componentStatus, err := getComponentStatus(ctx, conn, unitNames)
+			componentStatus, err := GetComponentStatus(ctx, conn)
 			if err != nil {
 				log.Println(err)
 			}

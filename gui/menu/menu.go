@@ -3,9 +3,7 @@ package menu
 import (
 	"fmt"
 	"log"
-	"os/exec"
 	"reflect"
-	"syscall"
 	"time"
 
 	"fyne.io/systray"
@@ -24,12 +22,14 @@ const (
 	Error
 )
 
-func StartMenu() {
+var ctx *DockerInWsl.WslContext
+
+func StartMenu(context *DockerInWsl.WslContext) {
 	onExit := func() {
 		now := time.Now()
 		fmt.Println("Exit at", now.String())
 	}
-
+	ctx = context
 	systray.Run(onReady, onExit)
 }
 
@@ -72,52 +72,40 @@ func onReady() {
 	systray.AddSeparator()
 	quit := systray.AddMenuItem("Quit", "Quit")
 
-	ctx, err := DockerInWsl.NewWslContext()
-	if err != nil {
-		log.Fatal(err)
-	}
-	ctx.Start()
-
 	for {
-		var cmd *exec.Cmd
+		var err error
 
 		select {
 		case <-quit.ClickedCh:
 			systray.Quit()
 		case <-enter.ClickedCh:
-			cmd = exec.Command("cmd", "/C", "start", "docker-wsl", "enter")
-			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+			err = ctx.Enter()
 		case <-enterRoot.ClickedCh:
-			cmd = exec.Command("cmd", "/C", "start", "docker-wsl", "enter-root")
-			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+			err = ctx.EnterRoot()
 		case <-showLogs.ClickedCh:
-			cmd = exec.Command("docker-wsl", "show-logs")
-			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+			err = ctx.ShowLogs()
 		case <-showConfig.ClickedCh:
-			cmd = exec.Command("docker-wsl", "show-config")
-			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+			err = ctx.ShowConfig()
 		case <-restart.ClickedCh:
-			cmd = exec.Command("docker-wsl", "restart")
+			err = ctx.Restart()
 		case <-restartAll.ClickedCh:
-			cmd = exec.Command("docker-wsl", "restart-all")
+			err = ctx.RestartAll()
 		case <-start.ClickedCh:
-			cmd = exec.Command("docker-wsl", "start")
+			err = ctx.Start()
 		case <-stop.ClickedCh:
-			cmd = exec.Command("docker-wsl", "stop")
+			err = ctx.Stop()
 		case <-restore.ClickedCh:
-			cmd = exec.Command("docker-wsl", "restore")
+			err = ctx.Restore()
 		case <-backup.ClickedCh:
-			cmd = exec.Command("docker-wsl", "backup")
+			err = ctx.Backup()
 		case dockerStatusReport := <-ctx.DockerStatus:
 			updateGlobalState(statusMenu, &dockerStatusReport)
 		case componentsStatusReport := <-ctx.SystemStatus:
 			updateSystemStatus(statusMenu, &statusSubMenuItemMap, &componentsStatusReport)
 		}
 
-		if cmd != nil {
-			if err := cmd.Run(); err != nil {
-				log.Println("Error:", err)
-			}
+		if err != nil {
+			log.Println("Error:", err)
 		}
 	}
 }

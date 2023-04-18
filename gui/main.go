@@ -1,7 +1,11 @@
 package main
 
-import "github.com/cloudflightio/dockerinwsl/gui/menu"
+import (
+	"github.com/cloudflightio/dockerinwsl/gui/cmd"
+	DockerInWsl "github.com/cloudflightio/dockerinwsl/gui/dockerinwsl"
+)
 
 func main() {
-	menu.StartMenu()
+	ctx := DockerInWsl.NewWslContext()
+	cmd.Execute(ctx)
 }

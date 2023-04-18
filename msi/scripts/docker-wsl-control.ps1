@@ -11,62 +11,10 @@ $TempDir = Join-Path $env:LOCALAPPDATA -ChildPath "Temp"
 $LogFilePath = Join-Path $TempDir -ChildPath "dockerinwsl.log"
 $LocalBase = "$env:LOCALAPPDATA\DockerInWSL"
 
-$SUPERVISOR_PID = "/run/supervisord.pid"
 $DISTRONAME = "clf_dockerinwsl"
 
 function Get-TimeStamp {
     return "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)
-}
-
-function Get-Version {
-    return  Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall" | 
-        Get-ItemProperty | 
-        Where-Object { ($_.Publisher -match "cloudflight") -and ($_.DisplayName -match "DockerInWSL")} | 
-        Select-Object -ExpandProperty DisplayVersion
-}
-
-function Start-Docker () {
-    "$(Get-TimeStamp) Starting ..." | Out-Host
-    wsl -d $DISTRONAME -u root /bin/bash -c "echo ..."
-    "$(Get-TimeStamp) ... started!" | Out-Host
-}
- 
-function Stop-Docker () {
-    "$(Get-TimeStamp) Stopping ..." | Out-Host
-    wsl --terminate $DISTRONAME
-    "$(Get-TimeStamp) ... stopped!" | Out-Host
-} 
-
-function Restart-Docker () {
-    Stop-Docker
-    Start-Docker
-}
-
-function Restart-DockerAndWsl () {
-    Stop-Docker
-    wsl --shutdown
-    Start-Docker
-}
-
-function Show-Logs() {
-    Invoke-Item "\\wsl$\$DISTRONAME\var\log"
-}
-
-function Show-ConfigFolder() {
-    Invoke-Item (Join-Path (Join-Path $env:APPDATA -ChildPath "DockerInWsl") -ChildPath "config")
-}
-
-function Enter-DockerMachineAsUser {
-    Start-Process -FilePath "wsl" -ArgumentList @("-d", $DISTRONAME) -Wait -NoNewWindow 
-}
-
-function Enter-DockerMachineAsRoot {
-    Start-Process -FilePath "wsl" -ArgumentList @("-d", $DISTRONAME, "-u", "root") -Wait -NoNewWindow 
-}
-
-function Get-DockerMachineStatus {
-    wsl -d $DISTRONAME -u root systemctl list-units -t service --no-legend --no-pager --all `
-    "{chrony.service,containerd.service,dbus.service,dnsmasq.service,docker.service,rsyslog.service,vpnkit.service,startup.service,docker-data-mount.service}"
 }
 
 function Get-CalledName {
@@ -109,19 +57,8 @@ function Write-CommandHelp {
 }
 
 $cmds = [ordered]@{
-    "start"       = { Start-Docker }
-    "stop"        = { Stop-Docker }
-    "restart"     = { Restart-Docker }
-    "restart-all" = { Restart-DockerAndWsl }
-    "status"      = { Get-DockerMachineStatus }
-    "enter"       = { Enter-DockerMachineAsUser }
-    "enter-root"  = { Enter-DockerMachineAsRoot }
-    "show-logs"   = { Show-Logs }
-    "show-config" = { Show-ConfigFolder }
     "restore"     = { Invoke-DockerEngineRestore }
     "backup"      = { Invoke-DockerEngineBackup }
-    "help"        = { Write-CommandHelp }
-    "version"     = { Get-Version }
 }
 
 try {

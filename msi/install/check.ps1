@@ -4,11 +4,6 @@ Set-StrictMode -Version 3
 
 Add-Type -AssemblyName Microsoft.VisualBasic
 
-if(((Get-ChildItem "HKCU:\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData") -match "MicrosoftCorporationII.WindowsSubsystemForLinux_8wekyb3d8bbwe").count -eq 0) {
-    [Microsoft.VisualBasic.Interaction]::MsgBox("WSL2 not installed!`n`nCheck your windows-updates and run 'wsl --install --no-distribution' in an elevated shell, reboot and start this install again.", 'OKOnly,SystemModal,Critical', "DockerInWSL Installation Error") | Out-Null
-    throw "WSL2 not installed"
-}
-
 # Hotfix for https://github.com/microsoft/WSL/issues/7767
 $wslHelpText = (((& wsl --help) -join ' ').ToCharArray() | % {$result = ""} { $result += ($_ | Where-Object { $_ -imatch "[ -a-z_]" }) } { $result })
 if($wslHelpText.IndexOf("--import") -lt 0) {

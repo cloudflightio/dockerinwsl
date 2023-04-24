@@ -1,8 +1,8 @@
 #!/bin/bash
 
 set -eo pipefail
-# shellcheck source=../../../etc/DockerInWsl/diw-commons.sh
-. /etc/DockerInWsl/diw-commons.sh
+# shellcheck source=../../../usr/local/lib/dockerinwsl/commons.sh
+. /usr/local/lib/dockerinwsl/commons.sh
 _diw_plugin_globalvars
 
 # bind mount docker data dir from data volume to runtime dir so that it survives updates/upgrades

@@ -2,25 +2,17 @@
 
 set -eo pipefail
 
-# shellcheck source=../../../etc/DockerInWsl/diw-commons.sh
-. /etc/DockerInWsl/diw-commons.sh
+# shellcheck source=../../../usr/local/lib/dockerinwsl/commons.sh
+. /usr/local/lib/dockerinwsl/commons.sh
 _diw_plugin_globalvars
 
 log "starting wsl-vpnkit"
 
-# Load defaults
-if [ -f "/etc/vpnkit/defaults.conf" ]; then
-  # shellcheck source=../../../etc/vpnkit/defaults.conf
-  . /etc/vpnkit/defaults.conf
-fi
-
 # set defaults if variable is not already set
-TAP_NAME=${TAP_NAME:-$DEFAULT_TAP_NAME}
-VPNKIT_SUBNET=${VPNKIT_SUBNET:-$DEFAULT_VPNKIT_SUBNET}
 VPNKIT_GATEWAY_IP=${VPNKIT_GATEWAY_IP:-$DEFAULT_VPNKIT_GATEWAY_IP}
 VPNKIT_HOST_IP=${VPNKIT_HOST_IP:-$DEFAULT_VPNKIT_HOST_IP}
-CHECK_DNS=${CHECK_DNS:-$DEFAULT_CHECK_DNS}
-CHECK_HOST=${CHECK_HOST:-$DEFAULT_CHECK_HOST}
+CHECK_DNS=${CHECK_DNS:-1.1.1.1}
+CHECK_HOST=${CHECK_HOST:-example.com}
 DNS_IP=${DNS_IP:-$DEFAULT_DNS_IP}
 
 WSL2_GATEWAY_INTERFACE="eth0"

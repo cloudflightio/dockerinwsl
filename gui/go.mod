@@ -5,7 +5,7 @@ go 1.20
 require (
 	fyne.io/systray v1.10.0
 	github.com/coreos/go-systemd/v22 v22.5.0
-	github.com/docker/docker v23.0.3+incompatible
+	github.com/docker/docker v23.0.6+incompatible
 	github.com/godbus/dbus/v5 v5.1.0
 )
 

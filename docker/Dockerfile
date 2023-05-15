@@ -1,4 +1,4 @@
-FROM docker.io/library/ubuntu:22.04
+FROM docker.io/library/ubuntu:23.04
 LABEL maintainer="Cloudflight GmbH"
 
 ARG WSL_VPNKIT_VERSION=0.3.8

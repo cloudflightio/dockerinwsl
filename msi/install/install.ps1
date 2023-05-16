@@ -88,7 +88,7 @@ try {
 
     }
 
-    . "$PSScriptRoot\..\scripts\docker-wsl-control.ps1" -Command "start" -NoTranscript
+    . "$PSScriptRoot\..\scripts\docker-wsl.bat" "start"
 
 } finally {
     Stop-Transcript

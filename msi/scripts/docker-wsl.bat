@@ -1,5 +1,9 @@
 @echo off
 setlocal
 SET sp=%~dp0
-%sp%\..\gui.exe %*
+IF "%1"=="menu" (
+START /B %sp%..\gui.exe %*
+) ELSE (
+%sp%..\gui.exe %*
+)
 endlocal

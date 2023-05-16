@@ -19,7 +19,7 @@ var (
 )
 
 func init() {
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	cli, err := client.NewClientWithOpts(client.WithHost("tcp://127.0.0.1:2375"), client.WithAPIVersionNegotiation())
 
 	if err != nil {
 		log.Fatal("Error:", err)

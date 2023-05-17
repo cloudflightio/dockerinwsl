@@ -19,7 +19,7 @@ jobs:
 
     - uses: actions/setup-go@v4
       with:
-        go-version: '^1.19.6'
+        go-version-file: 'gui/go.mod'
     
     - run: go build .
       working-directory: gui

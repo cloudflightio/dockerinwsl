@@ -10,6 +10,7 @@ $msbuild = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.
 
 Push-Location $PSScriptRoot
 & $msbuild /p:Configuration=Release /t:SignGuiExe
+& $msbuild /p:Configuration=Release /t:SignCliExe
 
 if ($LASTEXITCODE -ne 0) {
     throw "Can't sign msi"

@@ -158,13 +158,17 @@
         <File Id="GUI.EXE" Source="../gui.exe"></File>
         <RemoveFolder Id="RemoveInstallFolderGuiExeComponent" On='uninstall' />
       </Component>
+      <Component Id="CliExeComponent" Guid="{148582C5-6461-4618-9DBE-CF056B2091DB}" Win64="yes">
+        <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="cli" Type="integer" Value="1" KeyPath="yes"/>
+        <File Id="CLI.EXE" Source="../cli.exe"></File>
+        <RemoveFolder Id="RemoveInstallFolderCliExeComponent" On='uninstall' />
+      </Component>
     </ComponentGroup>
     <ComponentGroup Id="StartupComponents" Directory="StartupFolder">
       <Component Id="ApplicationShortcutStartupComponent" Guid="*" Win64="yes" >
         <Shortcut Id="StartupFolderShortcut" Name="dockerinwsl"
                   Description="DockerInWSL Startup"
-                  Target="[#DOCKERWSL.BAT]"
-                  Arguments="menu"
+                  Target="[#GUI.EXE]"
                   WorkingDirectory="INSTALLFOLDER" />
         <RemoveFile Id="RemoveStartupFolderShortcut" Name="dockerinwsl" On="uninstall" />
         <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="startup" Type="integer" Value="1" KeyPath="yes"/>   

@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	DISTRONAME = "clf_dockerinwsl"
+	DISTRONAME  = "clf_dockerinwsl"
+	DOCKER_HOST = "tcp://127.0.0.1:2375"
 )
 
 var (

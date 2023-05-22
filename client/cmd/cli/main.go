@@ -1,11 +1,14 @@
-package cmd
+package main
 
 import (
 	DockerInWsl "github.com/cloudflightio/dockerinwsl/gui/dockerinwsl"
 	"github.com/spf13/cobra"
+	"log"
+	"os"
 )
 
 var ctx *DockerInWsl.WslContext
+var lerr *log.Logger
 
 var rootCmd = &cobra.Command{
 	Use:   "docker-wsl",
@@ -77,11 +80,6 @@ var versionCmd = &cobra.Command{
 	},
 }
 
-func Execute(context *DockerInWsl.WslContext) error {
-	ctx = context
-	return rootCmd.Execute()
-}
-
 func init() {
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(stopCmd)
@@ -91,4 +89,14 @@ func init() {
 	rootCmd.AddCommand(showLogsCmd)
 	rootCmd.AddCommand(showConfigCmd)
 	rootCmd.AddCommand(versionCmd)
+}
+
+func main() {
+	lerr = log.New(os.Stderr, "error", log.LstdFlags)
+	ctx = DockerInWsl.NewWslContext()
+
+	err := rootCmd.Execute()
+	if err != nil {
+		lerr.Fatal(err)
+	}
 }

@@ -1,8 +1,9 @@
-package menu
+package main
 
 import (
 	"fmt"
 	"log"
+	"os"
 	"reflect"
 	"time"
 
@@ -23,15 +24,7 @@ const (
 )
 
 var ctx *DockerInWsl.WslContext
-
-func StartMenu(context *DockerInWsl.WslContext) {
-	onExit := func() {
-		now := time.Now()
-		fmt.Println("Exit at", now.String())
-	}
-	ctx = context
-	systray.Run(onReady, onExit)
-}
+var lerr *log.Logger
 
 func setGlobalState(s GlobalState) {
 	var ic []byte
@@ -105,7 +98,7 @@ func onReady() {
 		}
 
 		if err != nil {
-			log.Println("Error:", err)
+			lerr.Println(err)
 		}
 	}
 }
@@ -154,4 +147,18 @@ func getStatusMenuTitle(status *DockerInWsl.SocketStatus) string {
 	}
 
 	return "Docker is reachable"
+}
+
+func main() {
+	lerr = log.New(os.Stderr, "error", log.LstdFlags)
+	ctx = DockerInWsl.NewWslContext()
+	ctx.Start()
+	defer ctx.Stop()
+	ctx.StartChecks()
+
+	onExit := func() {
+		now := time.Now()
+		lerr.Println("Exit at", now.String())
+	}
+	systray.Run(onReady, onExit)
 }

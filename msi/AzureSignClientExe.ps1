@@ -2,8 +2,9 @@ $msbuild = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.
 
 Push-Location $PSScriptRoot
 & $msbuild /p:Configuration=Release /t:AzureSignGuiExe
+& $msbuild /p:Configuration=Release /t:AzureSignCliExe
 
 if ($LASTEXITCODE -ne 0) {
-    throw "Can't sign gui exe"
+    throw "Can't sign client exe"
 }
 exit 0

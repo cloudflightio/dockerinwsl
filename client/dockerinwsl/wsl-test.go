@@ -3,9 +3,11 @@ package DockerInWsl
 import (
 	"fmt"
 	"net"
+	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -28,7 +30,18 @@ func checkCommandInPath(command string) bool {
 }
 
 func checkExecOutput(pattern string, name string, arg ...string) bool {
-	out, err := exec.Command(name, arg...).CombinedOutput()
+	cmd := exec.Command(name, arg...)
+
+	env := os.Environ()
+	for _, v := range env {
+		fmt.Printf("%s\n", v)
+		if strings.HasPrefix(v, "DOCKER") {
+			fmt.Printf("%s\n", v)
+		}
+	}
+	cmd.Env = env
+	out, err := cmd.CombinedOutput()
+	fmt.Printf("%s\n%s\n", err, out)
 	if err != nil {
 		printfFail("Executing '%s %s' failed with '%s'", name, arg, err)
 		return false
@@ -68,7 +81,7 @@ func checkTcpPort(host string, port int16) bool {
 		printfOk("Connected to '%s'", hostport)
 		return true
 	}
-	printfFail("Unable to connect to '%s' ('%s')", hostport, err)
+	fmt.Printf("Unable to connect to '%s' ('%s')", hostport, err)
 	return false
 }
 

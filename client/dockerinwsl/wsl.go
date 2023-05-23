@@ -87,12 +87,12 @@ func (c WslContext) RestartAll() error {
 }
 
 func (WslContext) Restore() error {
-	cmd := exec.Command("docker-wsl-control.ps1", "restore")
+	cmd := exec.Command("docker-wsl-restore.ps1")
 	return cmd.Run()
 }
 
 func (WslContext) Backup() error {
-	cmd := exec.Command("docker-wsl-control.ps1", "backup")
+	cmd := exec.Command("docker-wsl-backup.ps1")
 	return cmd.Run()
 }
 

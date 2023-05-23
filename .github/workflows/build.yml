@@ -20,6 +20,7 @@ jobs:
     - uses: actions/setup-go@v4
       with:
         go-version-file: 'client/go.mod'
+        cache-dependency-path: 'client/go.sum'
     
     - run: go build -ldflags -H=windowsgui .\cmd\gui\
       working-directory: client

@@ -125,10 +125,11 @@
 
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="SCRIPTSFOLDER">
-      <Component Id="DockerWslScriptComponent" Guid="{7CF4D26F-D8FC-41B1-9964-CFF22E0387A4}" Win64="yes">
+      <Component Id="DockerWslScriptComponent" Guid="{F62EBDD9-7F74-49D4-AE71-7195A488A0FA}" Win64="yes">
         <RegistryValue Root="HKCU" Key="Software\DockerInWSL" Name="scripts" Type="integer" Value="1" KeyPath="yes"/>
         <File Source="scripts\docker-wsl.bat" Id="DOCKERWSL.BAT"></File>
-        <File Source="scripts\docker-wsl-control.ps1"></File>
+        <File Source="scripts\docker-wsl-backup.ps1"></File>
+        <File Source="scripts\docker-wsl-restore.ps1"></File>
         <File Source="scripts\docker.bat"></File>
         <File Source="scripts\docker-compose.bat"></File>
         <File Source="scripts\docker"></File>

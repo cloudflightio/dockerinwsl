@@ -1,5 +1,7 @@
 # DockerInWSL
 
+> ⚠️ This Project is deprecated! We decided to invest our ressources into existing docker-desktop alternatives like [rancher-desktop](https://github.com/rancher-sandbox/rancher-desktop) and [podman-desktop](https://github.com/containers/podman-desktop). Please migrate to one of those solutions as soon as possible.
+
 This Project is meant to be a minimal alternative to [Docker Desktop](https://docs.docker.com/desktop/windows/install/). It uses WSL2 and a customized Ubuntu Container-Image as a lightweight replacement for the [Moby VM](https://docs.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/linux-containers).
 
 ## How to install?

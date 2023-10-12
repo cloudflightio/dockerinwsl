@@ -93,7 +93,7 @@ Currently, it does miss some convenience features, like a management GUI but sho
 
 The whole installation process is handled by MSI and PowerShell. At its core, the installer is performing the following steps:
 
-* Check whether a newer or the same version is installed. → Abort installtion if this is the case.
+* Check whether a newer or the same version is installed. → Abort installation if this is the case.
 * Check whether WSL is installed properly. → Abort if no WSL2 install is found. (We decided to avoid installing it automatically because it can have some side-effects in complex environments)
 * Copy all scripts and a TAR export of our [Container-Image](docker/Dockerfile) to `%PROGRAMFILES%\DockerInWSL`.
 * Create the directory `%APPDATALOCAL%\DockerInWSL`, a startup Shortcut in `shell:startup` and some additional links in the start-menu all starting with "DockerInWsl".

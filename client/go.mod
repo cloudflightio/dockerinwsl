@@ -8,7 +8,7 @@ require (
 	github.com/docker/docker v24.0.1+incompatible
 	github.com/fatih/color v1.15.0
 	github.com/godbus/dbus/v5 v5.1.0
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 )
 
 require (

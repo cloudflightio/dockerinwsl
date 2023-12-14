@@ -43,7 +43,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
 
     - name: Upload Archive (tar)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: client-windows
         path: client/*.exe
@@ -58,7 +58,7 @@ jobs:
       run: make image
     
     - name: Upload Archive (tar)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: linux-container-image
         path: image*.tar
@@ -110,7 +110,7 @@ jobs:
       run: mv msi/bin/Release/* ./
 
     - name: Upload Archive
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: msi-package
         path: "*.msi"
